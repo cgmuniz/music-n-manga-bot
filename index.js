@@ -11,14 +11,14 @@ const queue = new Map();
 
 const { joinVoiceChannel,
   createAudioPlayer,
-	createAudioResource,
-	entersState,
-	StreamType,
-	AudioPlayerStatus,
-	VoiceConnectionStatus
- } = require("@discordjs/voice")
+  createAudioResource,
+  entersState,
+  StreamType,
+  AudioPlayerStatus,
+  VoiceConnectionStatus
+} = require("@discordjs/voice")
 
- const voice = require('@discordjs/voice');
+const voice = require('@discordjs/voice');
 
 const fs = require("node:fs")
 const path = require("node:path")
@@ -59,9 +59,9 @@ client.player = new Player(client, {
   }
 })
 
-const player = createAudioPlayer()
 client.player.extractors.register(YouTubeExtractor);
 
+const player = createAudioPlayer();
 
 client.once("ready", () => {
   const guild_ids = client.guilds.cache.map(guild => guild.id)
@@ -140,12 +140,15 @@ client.on("messageCreate", async (message) => {
       skip(message, serverQueue)
       return
     }
-    case "stop":
     case "pause": {
+      pause(message, serverQueue)
+      return
+    }
+    case "stop": {
       stop(message, serverQueue)
       return
     }
-    case"quit":
+    case "quit":
     case "exit": {
       let connection = voice.getVoiceConnection(message.guild.id);
 
@@ -154,7 +157,9 @@ client.on("messageCreate", async (message) => {
         return;
       };
 
-      queue.delete(guild.id)
+      message.reply(`Chupa meu papau`)
+
+      queue.delete(message.guild.id)
       connection.destroy();
     }
   }
@@ -184,13 +189,14 @@ async function execute(message, serverQueue) {
 
   let song = {}
 
-  if(!args.length) return message.channel.send("Diga qual música deseja!")
+  if (!args.length) return message.channel.send("Diga qual música deseja!")
 
   if (ytdl.validateURL(args[1])) {
-    const songInfo = await ytdl.getInfo(args[1]);
+    url = args[1]
+    const songInfo = await ytdl.getInfo(url);
     song = {
-      title: songInfo.title,
-      url: songInfo.video_url
+      title: songInfo.videoDetails.title,
+      url: url
     };
   } else {
     const { videos } = await yts(args.slice(1).join(" "));
@@ -208,6 +214,7 @@ async function execute(message, serverQueue) {
       connection: null,
       songs: [],
       volume: 5,
+      player: null,
       playing: true
     }
 
@@ -221,8 +228,35 @@ async function execute(message, serverQueue) {
           channelId: canal.id, // Id canal de voz
           guildId: canal.guild.id, // Id servidor
           adapterCreator: canal.guild.voiceAdapterCreator
-        }).subscribe(player)
+        })
       queueConstruct.connection = connection
+      queueConstruct.player = player;
+
+      player.addListener("stateChange", (oldOne, newOne) => {
+        if(oldOne == "idle"){
+      
+        }
+        else if (newOne.status == "idle") {
+          console.log("The song finished")
+          const serverQueue = queue.get(message.guild.id);
+          if (serverQueue) {
+            serverQueue.songs.shift(); // Remove a música que acabou de tocar
+            if (serverQueue.songs.length > 0) {
+              // Se ainda houver músicas na fila, toque a próxima
+              song = serverQueue.songs[0]
+              play(message.guild, song);
+            } else {
+              serverQueue.player.stop();
+              serverQueue.connection.destroy()
+              queue.delete(message.guild.id)
+              return;
+            }
+          } else {
+            console.log("Não há fila de reprodução para o servidor");
+          }
+        }
+      });      
+
       play(message.guild, queueConstruct.songs[0])
     } catch (err) {
       console.log(err);
@@ -232,7 +266,7 @@ async function execute(message, serverQueue) {
     }
   } else {
     serverQueue.songs.push(song)
-    return message.channel.send(`${song.title} foi adicionada à fila!`)
+    return message.channel.send(`**${song.title}** foi adicionada à fila!`)
   }
 }
 
@@ -255,23 +289,15 @@ function stop(message, serverQueue) {
 
 const play = async (guild, song) => {
   const serverQueue = queue.get(guild.id)
-  if (!song) {
-    voice.getVoiceConnection(message.guild.id).destroy()
-    queue.delete(guild.id)
-    return;
-  }
 
-  const stream = ytdl(song.url, { filter: 'audioonly' })
+  const stream = await ytdl(song.url, { filter: 'audioonly' })
 
-  const resource = createAudioResource(stream)
+  const songStream = await createAudioResource(stream)
 
-  player.play(resource)
-  /*  .on("finish", () => {
-      serverQueue.songs.shift()
-      play(guild, serverQueue.songs[0])
-    })
-    .on("error", error => console.error(error));
-  dispatcher.setVolumeLogarithmic(serverQueue.volume / 5)*/
+  serverQueue.connection.subscribe(serverQueue.player)
+
+  serverQueue.player.play(songStream)
+
   serverQueue.textChannel.send(`Tocando: **${song.title}**`)
 }
 
