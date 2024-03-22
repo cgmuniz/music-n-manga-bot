@@ -7,7 +7,7 @@ module.exports = {
         .setDescription("Mostra as 10 primeiras músicas da fila"),
 
     execute: async ({ client, interaction }) => {
-        const queue = client.player.getQueue(interaction.guildId)
+        const queue = client.player.queue(interaction.guildId)
 
         // check if there are songs in the queue
         if (!queue || !queue.playing)
