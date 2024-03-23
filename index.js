@@ -138,15 +138,17 @@ client.on("messageCreate", async (message) => {
     case "help": {
       message.channel.send(
         `**Comandos do bot:**\n\
-        \`\`\`&help ou &ajuda: mostra os comandos existentes do bot\n\
-&pp: tamain do pene\n\
-&play ou &p: procura e toca uma música\n\
-&skip: pula uma música\n\
-&pause: pausa uma música\n\
-&resume: retoma uma música\n\
-&queue ou &fila: mostra a fila atual de músicas\n\
-&stop: para a reprodução de música\n\
-&quit ou &exit: desconecta o bot da call\`\`\``
+\`\`\`&help ou &ajuda: mostra os comandos existentes do bot\n\n\
+música:
+  &play ou &p: procura e toca uma música\n\
+  &skip: pula uma música\n\
+  &pause: pausa uma música\n\
+  &resume: retoma uma música\n\
+  &queue ou &fila: mostra a fila atual de músicas\n\
+  &stop: para a reprodução de música\n\
+  &quit ou &exit: desconecta o bot da call\n\n\
+diversos:\n\
+  &pp: tamain do pene\`\`\``
       )
       return
     }
