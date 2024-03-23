@@ -140,8 +140,17 @@ client.on("messageCreate", async (message) => {
       skip(message, serverQueue)
       return
     }
+    case "resume": {
+      resume(message, serverQueue)
+      return
+    }
     case "pause": {
       pause(message, serverQueue)
+      return
+    }
+    case "queue":
+    case "fila": {
+      fila(message, serverQueue)
       return
     }
     case "stop": {
@@ -159,8 +168,10 @@ client.on("messageCreate", async (message) => {
 
       message.reply(`Chupa meu papau`)
 
+      serverQueue.songs = []
+
       queue.delete(message.guild.id)
-      connection.destroy();
+      connection.disconnect();
     }
   }
 
@@ -189,21 +200,27 @@ async function execute(message, serverQueue) {
 
   let song = {}
 
-  if (!args.length) return message.channel.send("Diga qual música deseja!")
+  if (!args[1]) return message.channel.send("Diga qual música deseja!")
 
   if (ytdl.validateURL(args[1])) {
     url = args[1]
     const songInfo = await ytdl.getInfo(url);
     song = {
+      requestedBy: message.author,
       title: songInfo.videoDetails.title,
-      url: url
+      url: url,
+      thumbnail: songInfo.videoDetails.thumbnails,
+      duration: songInfo.videoDetails.lengthSeconds
     };
   } else {
     const { videos } = await yts(args.slice(1).join(" "));
     if (!videos.length) return message.channel.send("Nenhuma música encontrada!");
     song = {
+      requestedBy: message.author,
       title: videos[0].title,
-      url: videos[0].url
+      url: videos[0].url,
+      thumbnail: videos[0].thumbnail,
+      duration: videos[0].duration
     };
   }
 
@@ -233,8 +250,8 @@ async function execute(message, serverQueue) {
       queueConstruct.player = player;
 
       player.addListener("stateChange", (oldOne, newOne) => {
-        if(oldOne == "idle"){
-      
+        if (oldOne.status == "idle") {
+
         }
         else if (newOne.status == "idle") {
           console.log("The song finished")
@@ -244,10 +261,10 @@ async function execute(message, serverQueue) {
             if (serverQueue.songs.length > 0) {
               // Se ainda houver músicas na fila, toque a próxima
               song = serverQueue.songs[0]
-              play(message.guild, song);
+              play(message.guild, song)
             } else {
-              serverQueue.player.stop();
-              serverQueue.connection.destroy()
+              serverQueue.player.stop()
+              serverQueue.connection.disconnect()
               queue.delete(message.guild.id)
               return;
             }
@@ -255,7 +272,7 @@ async function execute(message, serverQueue) {
             console.log("Não há fila de reprodução para o servidor");
           }
         }
-      });      
+      });
 
       play(message.guild, queueConstruct.songs[0])
     } catch (err) {
@@ -266,7 +283,7 @@ async function execute(message, serverQueue) {
     }
   } else {
     serverQueue.songs.push(song)
-    return message.channel.send(`**${song.title}** foi adicionada à fila!`)
+    return message.channel.send(`Adicionada à fila: **${song.title}**`)
   }
 }
 
@@ -276,15 +293,68 @@ function skip(message, serverQueue) {
       "Você deve estar na call para skippar a música!"
     )
   if (!serverQueue)
-    return message.channel.send("Não há música para skippar!")
-  serverQueue.connection.dispatcher.end()
+    return message.channel.send("Não há músicas para skippar!")
+
+
+  message.channel.send(`Skippada: **${serverQueue.songs[0].title}**`)
+  serverQueue.songs.shift(); // Remove a música que acabou de tocar
+  if (serverQueue.songs.length > 0) {
+    // Se ainda houver músicas na fila, toque a próxima
+    song = serverQueue.songs[0]
+    play(message.guild, song)
+  } else {
+    serverQueue.player.stop()
+    serverQueue.connection.disconnect()
+    queue.delete(message.guild.id)
+    return;
+  }
+
+}
+
+function resume(message, serverQueue) {
+  if (!message.member.voice.channel)
+    return message.channel.send("Você deve estar na call para retomar a música!")
+  if (!serverQueue)
+    return message.channel.send("Não há músicas para retomar!")
+
+  serverQueue.player.unpause()
+}
+
+function pause(message, serverQueue) {
+  if (!message.member.voice.channel)
+    return message.channel.send("Você deve estar na call para pausar a música!")
+  if (!serverQueue)
+    return message.channel.send("Não há músicas para pausar!")
+  serverQueue.player.pause()
+}
+
+function fila(message, serverQueue) {
+  if (!message.member.voice.channel)
+    return message.channel.send("Você deve estar na call para ver a fila!")
+  if (!serverQueue)
+    return message.channel.send("Não há músicas na fila!")
+
+  const queueString = serverQueue.songs.slice(0, 10).map((song, i) => {
+    return `${i + 1}) [${song.duration}] \`${song.title}\` - <@${song.requestedBy.id}>`
+  }).join("\n")
+
+  message.channel.send({
+    embeds: [
+      new EmbedBuilder()
+        .setDescription(`**Fila**\n\n${queueString}`
+        )
+    ]
+  })
 }
 
 function stop(message, serverQueue) {
   if (!message.member.voice.channel)
     return message.channel.send("Você deve estar na call para parar a música!")
+  if (!serverQueue)
+    return message.channel.send("Não há músicas para parar!")
+
   serverQueue.songs = []
-  serverQueue.connection.dispatcher.end()
+  serverQueue.player.stop()
 }
 
 const play = async (guild, song) => {
