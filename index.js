@@ -135,12 +135,13 @@ client.on("messageCreate", async (message) => {
 
   switch (commandName) {
     case "ajuda":
+    case "h":
     case "help": {
       message.channel.send(
         `**Comandos do bot:**\n\
-\`\`\`&help ou &ajuda: mostra os comandos existentes do bot\n\n\
+\`\`\`&help ou &ajuda [alias: &h]: mostra os comandos existentes do bot\n\n\
 música:
-  &play ou &p: procura e toca uma música\n\
+  &play [alias: &p]: procura e toca uma música\n\
   &skip: pula uma música\n\
   &pause: pausa uma música\n\
   &resume: retoma uma música\n\
@@ -148,12 +149,25 @@ música:
   &stop: para a reprodução de música\n\
   &quit ou &exit: desconecta o bot da call\n\n\
 diversos:\n\
-  &pp: tamain do pene\`\`\``
+  &pp: tamain do pene\n\
+  &poggers: poggers\`\`\``
       )
       return
     }
+    case "poggers": {
+      message.reply(":scream:")
+      return
+    }
     case "pp": {
-      embedMessage = new EmbedBuilder().setTitle("Tamain do pene").setDescription(`Pau do ${message.author.username}:\n8${"=".repeat(randomIntFromInterval(0, 20))}D`).setColor("Random")
+      rand = randomIntFromInterval(0, 1000)
+      console.log(`count: ${rand}`)
+      if (rand === 453) {
+        embedMessage = new EmbedBuilder().setTitle("Tamanhao do pene").setDescription(`Pau do ${message.author.username}:\n8${"=".repeat(68)}D`).setColor("Random")
+      }
+      else {
+        embedMessage = new EmbedBuilder().setTitle("Tamain do pene").setDescription(`Pau do ${message.author.username}:\n8${"=".repeat(randomIntFromInterval(0, 20))}D`).setColor("Random")
+      }
+
       message.channel.send({ embeds: [embedMessage] })
       return
     }
