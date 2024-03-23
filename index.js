@@ -1,7 +1,7 @@
 require("dotenv").config()
 
-const { REST } = require("@discordjs/rest")
-const { Routes } = require("discord-api-types/v9")
+// const { REST } = require("@discordjs/rest")
+// const { Routes } = require("discord-api-types/v9")
 const { Player } = require("discord-player")
 const { YouTubeExtractor } = require("@discord-player/extractor")
 
@@ -37,6 +37,10 @@ const client = new Client(
 
 const config = require("./config.json")
 
+const tempoVideoMaximoString = "1 hora"
+const tempoVideoMaximoSec = 3600
+
+/*
 // Carregar os comandos
 const commands = []
 client.commands = new Collection()
@@ -51,6 +55,7 @@ for (const file of commandsFile) {
   client.commands.set(command.data.name, command)
   commands.push(command.data.toJSON())
 }
+*/ // Slash Commands
 
 client.player = new Player(client, {
   ytdlOptions: {
@@ -64,7 +69,7 @@ client.player.extractors.register(YouTubeExtractor);
 const player = createAudioPlayer();
 
 client.once("ready", () => {
-  const guild_ids = client.guilds.cache.map(guild => guild.id)
+  /*const guild_ids = client.guilds.cache.map(guild => guild.id)
 
   const rest = new REST({ version: "9" }).setToken(process.env.TOKEN)
   for (const guildId of guild_ids) {
@@ -73,11 +78,13 @@ client.once("ready", () => {
     })
       .then(() => console.log(`Comandos adicionados a ${guildId}`))
       .catch(console.error)
-  }
+  }*/ // Slash Commands
 
   console.log(`Bot iniciado com ${client.users.cache.size} clientes, em ${client.channels.cache.size} canais, em ${client.guilds.cache.size} servidores`)
   client.user.setActivity(`Há ${new Date().getFullYear()} anos sem sexo`)
 })
+
+/*
 
 client.on("interactionCreate", async interaction => {
   if (!interaction.isCommand()) return;
@@ -92,7 +99,7 @@ client.on("interactionCreate", async interaction => {
     console.error(error);
     await interaction.reply({ content: "Houve um erro ao executar o comando", ephemeral: true });
   }
-});
+});*/ // Slash Commands
 
 /*client.on("guildCreate", guild => {
   console.log(`O bot entrou no servidor: ${guild.name} (id: ${guild.id}). População: ${guild.memberCount} membros`)
@@ -117,20 +124,37 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 });
 
 client.on("messageCreate", async (message) => {
+
   if (!message.content.startsWith(config.prefix) || message.author.bot || !message.guild) return
 
   const commandName = message.content.toLowerCase().split(" ")[0].substring(config.prefix.length)
-
-  if (commandName === "pp") {
-    embedMessage = new EmbedBuilder().setTitle("Tamain do pene").setDescription(`Pau do ${message.author.username}:\n8${"=".repeat(randomIntFromInterval(0, 20))}D`).setColor("Random")
-    message.channel.send({ embeds: [embedMessage] })
-  }
 
   const serverQueue = queue.get(message.guild.id);
 
   canal = message.member.voice.channel;
 
   switch (commandName) {
+    case "ajuda":
+    case "help": {
+      message.channel.send(
+        `**Comandos do bot:**\n\
+        \`\`\`&help ou &ajuda: mostra os comandos existentes do bot\n\
+&pp: tamain do pene\n\
+&play ou &p: procura e toca uma música\n\
+&skip: pula uma música\n\
+&pause: pausa uma música\n\
+&resume: retoma uma música\n\
+&queue ou &fila: mostra a fila atual de músicas\n\
+&stop: para a reprodução de música\n\
+&quit ou &exit: desconecta o bot da call\`\`\``
+      )
+      return
+    }
+    case "pp": {
+      embedMessage = new EmbedBuilder().setTitle("Tamain do pene").setDescription(`Pau do ${message.author.username}:\n8${"=".repeat(randomIntFromInterval(0, 20))}D`).setColor("Random")
+      message.channel.send({ embeds: [embedMessage] })
+      return
+    }
     case "play":
     case "p": {
       execute(message, serverQueue)
@@ -140,12 +164,12 @@ client.on("messageCreate", async (message) => {
       skip(message, serverQueue)
       return
     }
-    case "resume": {
-      resume(message, serverQueue)
-      return
-    }
     case "pause": {
       pause(message, serverQueue)
+      return
+    }
+    case "resume": {
+      resume(message, serverQueue)
       return
     }
     case "queue":
@@ -205,22 +229,36 @@ async function execute(message, serverQueue) {
   if (ytdl.validateURL(args[1])) {
     url = args[1]
     const songInfo = await ytdl.getInfo(url);
+    segundos = songInfo.videoDetails.lengthSeconds
+
+    if (segundos > tempoVideoMaximoSec) return message.channel.send(`Vídeo muito longo! (Tempo de vídeo máximo: ${tempoVideoMaximoString}`)
+
+    let minutos = Math.floor(segundos / 60)
+    let segundosRestantes = segundos % 60
     song = {
       requestedBy: message.author,
       title: songInfo.videoDetails.title,
       url: url,
       thumbnail: songInfo.videoDetails.thumbnails,
-      duration: songInfo.videoDetails.lengthSeconds
+      duration: `(${minutos}:${segundosRestantes})`
     };
   } else {
-    const { videos } = await yts(args.slice(1).join(" "));
-    if (!videos.length) return message.channel.send("Nenhuma música encontrada!");
+    const { videos } = await yts(args.slice(1).join(" "))
+    if (!videos.length) return message.channel.send("Nenhuma música encontrada!")
+
+    segundos = videos[0].duration.seconds
+
+    if (segundos > tempoVideoMaximoSec) return message.channel.send(`Vídeo muito longo! (Tempo de vídeo máximo: ${tempoVideoMaximoString}`)
+
+    let minutos = Math.floor(segundos / 60)
+    let segundosRestantes = segundos % 60
+
     song = {
       requestedBy: message.author,
       title: videos[0].title,
       url: videos[0].url,
       thumbnail: videos[0].thumbnail,
-      duration: videos[0].duration
+      duration: `(${minutos}:${segundosRestantes})`
     };
   }
 
@@ -335,7 +373,7 @@ function fila(message, serverQueue) {
     return message.channel.send("Não há músicas na fila!")
 
   const queueString = serverQueue.songs.slice(0, 10).map((song, i) => {
-    return `${i + 1}) [${song.duration}] \`${song.title}\` - <@${song.requestedBy.id}>`
+    return `${i + 1}) ${song.duration} \`${song.title}\` - <@${song.requestedBy.id}>`
   }).join("\n")
 
   message.channel.send({
