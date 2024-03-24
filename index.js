@@ -5,6 +5,9 @@ require("dotenv").config()
 const { Player } = require("discord-player")
 const { YouTubeExtractor } = require("@discord-player/extractor")
 
+const Genius = require("genius-lyrics")
+const ClientGenius = new Genius.Client("yIAYj1pRlxwCZZ6s7m_d9_UxVaSuQXjuxl58iv738hssbo9XAs7tva-tk_mhS3ml")
+
 const ytdl = require("ytdl-core");
 const yts = require("yt-search");
 const queue = new Map();
@@ -23,7 +26,7 @@ const voice = require('@discordjs/voice');
 const fs = require("node:fs")
 const path = require("node:path")
 
-const { Client, GatewayIntentBits, EmbedBuilder, Collection, VoiceBasedChannel, Permissions } = require("discord.js")
+const { Client, GatewayIntentBits, EmbedBuilder, Collection, VoiceBasedChannel, Permissions, ReactionEmoji, ReactionCollector, ReactionManager } = require("discord.js")
 const client = new Client(
   {
     intents: [
@@ -171,6 +174,39 @@ diversos:\n\
       message.channel.send({ embeds: [embedMessage] })
       return
     }
+    case "lyrics": {
+      const args = message.content.split(" ")
+      
+      if (!args[1]) {
+        if (serverQueue) {
+          if(serverQueue.songs[0]){
+            musiga = serverQueue.songs[0].title
+          }
+        }
+        else return message.reply("Diga qual música deseja!")
+      }
+      else{
+        musiga = args.slice(1).join(" ")
+      }
+
+      const searches = await ClientGenius.songs.search(musiga);
+
+      const firstSong = searches[0];
+
+      let lyrics
+      
+      if(firstSong){
+        lyrics = await firstSong.lyrics()
+      }
+      else {
+        return message.reply("Música não encontrada :(")
+      }
+
+      embedMessage = new EmbedBuilder().setDescription(lyrics).setTitle(firstSong.title).setThumbnail(firstSong.thumbnail)
+
+      message.channel.send({ embeds: [embedMessage] })
+      return
+    }
     case "play":
     case "p": {
       execute(message, serverQueue)
@@ -240,7 +276,7 @@ async function execute(message, serverQueue) {
 
   let song = {}
 
-  if (!args[1]) return message.channel.send("Diga qual música deseja!")
+  if (!args[1]) return message.reply("Diga qual música deseja!")
 
   if (ytdl.validateURL(args[1])) {
     url = args[1]
