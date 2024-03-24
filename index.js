@@ -144,17 +144,22 @@ client.on("messageCreate", async (message) => {
         `**Comandos do bot:**\n\
 \`\`\`&help ou &ajuda [alias: &h]: mostra os comandos existentes do bot\n\n\
 música:
+  &lyrics: exibe a letra de uma música\n\
   &play [alias: &p]: procura e toca uma música\n\
   &skip: pula uma música\n\
   &pause: pausa uma música\n\
   &resume: retoma uma música\n\
   &queue ou &fila: mostra a fila atual de músicas\n\
-  &stop: para a reprodução de música\n\
   &quit ou &exit: desconecta o bot da call\n\n\
 diversos:\n\
   &pp: tamain do pene\n\
   &poggers: poggers\`\`\``
       )
+      return
+    }
+    case "kys":
+    case "smt": {
+      message.reply("https://i.kym-cdn.com/photos/images/original/002/229/998/1f4")
       return
     }
     case "poggers": {
@@ -229,30 +234,22 @@ diversos:\n\
       fila(message, serverQueue)
       return
     }
-    case "stop": {
-      stop(message, serverQueue)
-      return
-    }
     case "quit":
     case "exit": {
       let connection = voice.getVoiceConnection(message.guild.id)
-
+      
       if (connection === undefined) {
         await message.reply("Não to na call carai")
         return
       }
 
       if (serverQueue) {
-        serverQueue.player.stop()
-        serverQueue.songs = []
+        stop(message, serverQueue)        
         message.reply(`Chupa meu paupau`)
-        queue.delete(message.guild.id)
       }
       else {
         message.reply(`Não to na call carai`)
       }
-
-      connection.disconnect()
 
       return
     }
@@ -349,7 +346,6 @@ async function execute(message, serverQueue) {
       queueConstruct.player = player;
 
       player.addListener("stateChange", (oldOne, newOne) => {
-        jaTocou = 1
         if (oldOne.status == "idle") {
 
         }
@@ -360,16 +356,10 @@ async function execute(message, serverQueue) {
             if (serverQueue.songs.length > 0) {
               // Se ainda houver músicas na fila, toque a próxima
               song = serverQueue.songs[0]
-              console.log(song.title)
-              play(song, serverQueue, 1)
+              play(song, serverQueue)
             } else {
-              serverQueue.player.stop()
-              let connection = voice.getVoiceConnection(message.guild.id)
-              connection.disconnect()
-              queue.delete(message.guild.id)
-              console.log("Ta errado")
-              player.removeAllListeners()
-              return;
+              stop(message, serverQueue)
+              return
             }
           } else {
             console.log("Não há fila de reprodução para o servidor");
@@ -377,7 +367,7 @@ async function execute(message, serverQueue) {
         }
       })
 
-      play(serverQueue.songs[0], serverQueue, 0)
+      play(serverQueue.songs[0], serverQueue)
     } catch (err) {
       console.log(err);
       queue.delete(message.guild.id);
@@ -406,9 +396,7 @@ function skip(message, serverQueue) {
     song = serverQueue.songs[0]
     play(message.guild, song)
   } else {
-    serverQueue.player.stop()
-    serverQueue.connection.disconnect()
-    queue.delete(message.guild.id)
+    stop(message, serverQueue)
     return;
   }
 
@@ -451,24 +439,23 @@ function fila(message, serverQueue) {
 }
 
 function stop(message, serverQueue) {
-  if (!message.member.voice.channel)
-    return message.channel.send("Você deve estar na call para parar a música!")
-  if (!serverQueue)
-    return message.channel.send("Não há músicas para parar!")
-
-  serverQueue.songs = []
   serverQueue.player.stop()
+  serverQueue.songs = []
+
+  let connection = voice.getVoiceConnection(message.guild.id)
+  connection.disconnect()
+
+  queue.delete(message.guild.id)
+  player.removeAllListeners()
 }
 
-const play = async (song, serverQueue, queueBool) => {
+const play = async (song, serverQueue) => {
 
   const stream = await ytdl(song.url, { filter: 'audioonly' })
 
   const songStream = await createAudioResource(stream)
 
-  if (queueBool === 0) {
-    serverQueue.connection.subscribe(serverQueue.player)
-  }
+  serverQueue.connection.subscribe(serverQueue.player)
 
   serverQueue.player.play(songStream)
 
