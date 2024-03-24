@@ -176,16 +176,16 @@ diversos:\n\
     }
     case "lyrics": {
       const args = message.content.split(" ")
-      
+
       if (!args[1]) {
         if (serverQueue) {
-          if(serverQueue.songs[0]){
+          if (serverQueue.songs[0]) {
             musiga = serverQueue.songs[0].title
           }
         }
         else return message.reply("Diga qual música deseja!")
       }
-      else{
+      else {
         musiga = args.slice(1).join(" ")
       }
 
@@ -194,8 +194,8 @@ diversos:\n\
       const firstSong = searches[0];
 
       let lyrics
-      
-      if(firstSong){
+
+      if (firstSong) {
         lyrics = await firstSong.lyrics()
       }
       else {
@@ -235,19 +235,26 @@ diversos:\n\
     }
     case "quit":
     case "exit": {
-      let connection = voice.getVoiceConnection(message.guild.id);
+      let connection = voice.getVoiceConnection(message.guild.id)
 
       if (connection === undefined) {
-        await message.reply("Não to na call carai");
-        return;
-      };
+        await message.reply("Não to na call carai")
+        return
+      }
 
-      message.reply(`Chupa meu papau`)
+      if (serverQueue) {
+        serverQueue.player.stop()
+        serverQueue.songs = []
+        message.reply(`Chupa meu paupau`)
+        queue.delete(message.guild.id)
+      }
+      else {
+        message.reply(`Não to na call carai`)
+      }
 
-      serverQueue.songs = []
+      connection.disconnect()
 
-      queue.delete(message.guild.id)
-      connection.disconnect();
+      return
     }
   }
 
@@ -327,7 +334,9 @@ async function execute(message, serverQueue) {
 
     queue.set(message.guild.id, queueConstruct)
 
-    queueConstruct.songs.push(song)
+    serverQueue = queue.get(message.guild.id)
+
+    serverQueue.songs.push(song)
 
     try {
       var connection =
@@ -340,31 +349,35 @@ async function execute(message, serverQueue) {
       queueConstruct.player = player;
 
       player.addListener("stateChange", (oldOne, newOne) => {
+        jaTocou = 1
         if (oldOne.status == "idle") {
 
         }
         else if (newOne.status == "idle") {
           console.log("The song finished")
-          const serverQueue = queue.get(message.guild.id);
           if (serverQueue) {
             serverQueue.songs.shift(); // Remove a música que acabou de tocar
             if (serverQueue.songs.length > 0) {
               // Se ainda houver músicas na fila, toque a próxima
               song = serverQueue.songs[0]
-              play(message.guild, song)
+              console.log(song.title)
+              play(song, serverQueue, 1)
             } else {
               serverQueue.player.stop()
-              serverQueue.connection.disconnect()
+              let connection = voice.getVoiceConnection(message.guild.id)
+              connection.disconnect()
               queue.delete(message.guild.id)
+              console.log("Ta errado")
+              player.removeAllListeners()
               return;
             }
           } else {
             console.log("Não há fila de reprodução para o servidor");
           }
         }
-      });
+      })
 
-      play(message.guild, queueConstruct.songs[0])
+      play(serverQueue.songs[0], serverQueue, 0)
     } catch (err) {
       console.log(err);
       queue.delete(message.guild.id);
@@ -447,14 +460,15 @@ function stop(message, serverQueue) {
   serverQueue.player.stop()
 }
 
-const play = async (guild, song) => {
-  const serverQueue = queue.get(guild.id)
+const play = async (song, serverQueue, queueBool) => {
 
   const stream = await ytdl(song.url, { filter: 'audioonly' })
 
   const songStream = await createAudioResource(stream)
 
-  serverQueue.connection.subscribe(serverQueue.player)
+  if (queueBool === 0) {
+    serverQueue.connection.subscribe(serverQueue.player)
+  }
 
   serverQueue.player.play(songStream)
 
