@@ -42,8 +42,8 @@ const config = require("./config.json")
 
 const tempoMusicaMaximoString = "1 hora"
 const tempoMusicaMaximoSec = 3600
-const tempoVideoMaximoString = "20 minutos"
-const tempoVideoMaximoSec = 1200
+const tempoVideoMaximoString = "10 minutos"
+const tempoVideoMaximoSec = 600
 
 /*
 // Carregar os comandos
@@ -146,7 +146,7 @@ música:\n\
   &queue ou &fila: mostra a fila atual de músicas\n\
   &quit ou &exit: desconecta o bot da call\n\n\
 vídeos:\n\
-  &video: procura um vídeo do YouTube, baixa e envia\n\
+  &video: procura um vídeo do YouTube, baixa e envia\n\n\
 diversos:\n\
   &avatar [@mention]: envia o avatar do usuário\n\
   &smt ou &kys [@mention]: keep yourself safe\n\
@@ -291,27 +291,25 @@ diversos:\n\
       } else {
         const { videos } = await yts(args.slice(1).join(" "))
         if (!videos.length) return message.reply("Nenhum vídeo encontrado!")
-
-        segundos = videos[0].duration.seconds
-
-        if (segundos > tempoVideoMaximoSec) return message.reply(`Vídeo muito longo! (Tempo de vídeo máximo: ${tempoVideoMaximoString}`)
-
+        
         url = videos[0].url
       }
-
+      
       const info = await ytdl.getInfo(url)
       title = info.videoDetails.title
+      const sec = parseInt(info.videoDetails.lengthSeconds)
+      
+      if (sec > tempoVideoMaximoSec) return message.reply(`Vídeo muito longo! (Tempo de vídeo máximo: ${tempoVideoMaximoString})`)
 
-      const videoFormat = ytdl.chooseFormat(info.formats, { filter: 'audioandvideo', quality: 'highest' })
+      const videoFormat = sec > 420 ? ytdl.chooseFormat(info.formats, { filter: 'audioandvideo', quality: 'lowest' })
+        : ytdl.chooseFormat(info.formats, { filter: 'audioandvideo', quality: 'highest' })
       const videoStream = ytdl.downloadFromInfo(info, { format: videoFormat })
       const videoFilePath = 'video.mp4'
 
       message.reply("Procurando no YouTube...")
         .then(replyMessage => {
           // Baixar o vídeo e enviar depois que estiver pronto
-          videoStream.pipe(fs.createWriteStream(videoFilePath))
-
-          videoStream.on('finish', () => {
+          videoStream.pipe(fs.createWriteStream(videoFilePath)).on('finish', () => {
             // Editar a primeira mensagem para responder com a segunda mensagem
             replyMessage.edit({ content: title, files: [videoFilePath] })
               .then(() => {
@@ -324,8 +322,20 @@ diversos:\n\
                 })
                 console.log('Vídeo enviado com sucesso!')
               })
-              .catch(console.error);
-          });
+              .catch(async (error) => {
+                replyMessage.edit("Erro ao enviar o vídeo, vídeo muito pesado!")
+                console.error('Erro ao enviar o vídeo:', error);
+                // Verifica se o arquivo existe
+                try {
+                  await fs.promises.access(videoFilePath);
+                  // Se existir, exclui o arquivo
+                  await fs.promises.unlink(videoFilePath);
+                  console.log('Arquivo excluído com sucesso:', videoFilePath);
+                } catch (err) {
+                  console.error('Erro ao excluir o arquivo:', err);
+                }
+              })
+          })
         })
         .catch(console.error)
 
@@ -406,7 +416,7 @@ async function execute(message, serverQueue) {
     const songInfo = await ytdl.getInfo(url)
     segundos = songInfo.videoDetails.lengthSeconds
 
-    if (segundos > tempoMusicaMaximoSec) return message.reply(`Música muito longa! (Tempo de música máximo: ${tempoMusicaMaximoString}`)
+    if (segundos > tempoMusicaMaximoSec) return message.reply(`Música muito longa! (Tempo de música máximo: ${tempoMusicaMaximoString})`)
 
     let minutos = Math.floor(segundos / 60)
     let segundosRestantes = segundos % 60
@@ -426,7 +436,7 @@ async function execute(message, serverQueue) {
 
     segundos = videos[0].duration.seconds
 
-    if (segundos > tempoVideoMaximoSec) return message.reply(`Vídeo muito longo! (Tempo de vídeo máximo: ${tempoVideoMaximoString}`)
+    if (segundos > tempoMusicaMaximoSec) return message.reply(`Música muito longa! (Tempo de música máximo: ${tempoMusicaMaximoString})`)
 
     let minutos = Math.floor(segundos / 60)
     let segundosRestantes = segundos % 60
