@@ -26,7 +26,7 @@ const voice = require('@discordjs/voice');
 const fs = require("node:fs")
 const path = require("node:path")
 
-const { Client, GatewayIntentBits, EmbedBuilder, Collection, VoiceBasedChannel, Permissions, ReactionEmoji, ReactionCollector, ReactionManager } = require("discord.js")
+const { Client, GatewayIntentBits, EmbedBuilder, Collection, VoiceBasedChannel, Permissions, ReactionEmoji, ReactionCollector, ReactionManager, MessageAttachment } = require("discord.js")
 const client = new Client(
   {
     intents: [
@@ -40,8 +40,10 @@ const client = new Client(
 
 const config = require("./config.json")
 
-const tempoVideoMaximoString = "1 hora"
-const tempoVideoMaximoSec = 3600
+const tempoMusicaMaximoString = "1 hora"
+const tempoMusicaMaximoSec = 3600
+const tempoVideoMaximoString = "20 minutos"
+const tempoVideoMaximoSec = 1200
 
 /*
 // Carregar os comandos
@@ -118,14 +120,6 @@ function randomIntFromInterval(min, max) { // min and max included
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
-client.on('voiceStateUpdate', (oldState, newState) => {
-  if (oldState.member.user.bot) return;
-
-  if (newState.channelId === null) console.log('user left channel', oldState.channelId);
-  else if (oldState.channelId === null) console.log('user joined channel', newState.channelId);
-  else console.log('user moved channels', oldState.channelId, newState.channelId);
-});
-
 client.on("messageCreate", async (message) => {
 
   if (!message.content.startsWith(config.prefix) || message.author.bot || !message.guild) return
@@ -143,7 +137,7 @@ client.on("messageCreate", async (message) => {
       message.channel.send(
         `**Comandos do bot:**\n\
 \`\`\`&help ou &ajuda [alias: &h]: mostra os comandos existentes do bot\n\n\
-música:
+música:\n\
   &lyrics: exibe a letra de uma música\n\
   &play [alias: &p]: procura e toca uma música\n\
   &skip: pula uma música\n\
@@ -151,15 +145,62 @@ música:
   &resume: retoma uma música\n\
   &queue ou &fila: mostra a fila atual de músicas\n\
   &quit ou &exit: desconecta o bot da call\n\n\
+vídeos:\n\
+  &video: procura um vídeo do YouTube, baixa e envia\n\
 diversos:\n\
+  &avatar [@mention]: envia o avatar do usuário\n\
+  &smt ou &kys [@mention]: keep yourself safe\n\
   &pp: tamain do pene\n\
   &poggers: poggers\`\`\``
       )
       return
     }
+    case "avatar": {
+      const args = message.content.split(" ")
+
+      if (args[1]) {
+        const user = getUserFromMention(args[1])
+        if (!user) {
+          return message.reply('Por favor mencione corretamente para ver o avatar de alguém')
+        }
+
+        embedMessage = new EmbedBuilder()
+          .setTitle(user.username)
+          .setImage(user.displayAvatarURL({ format: 'png', size: 4096, dynamic: true }))
+          .setColor("Random")
+
+        return message.reply({ embeds: [embedMessage] })
+      }
+
+      embedMessage = new EmbedBuilder()
+        .setTitle(message.author.username)
+        .setImage(message.author.avatarURL({ format: 'png', size: 4096, dynamic: true }))
+        .setColor("Random")
+
+      return message.reply({ embeds: [embedMessage] })
+    }
     case "kys":
     case "smt": {
-      message.reply("https://i.kym-cdn.com/photos/images/original/002/229/998/1f4")
+      const args = message.content.split(" ")
+
+      if (args[1]) {
+        const user = getUserFromMention(args[1])
+        if (!user) {
+          return
+        }
+
+        message.channel.send(`<@${user.id}>`)
+
+        rand = randomIntFromInterval(0, 1)
+        rand === 0 ? message.channel.send(`https://tenor.com/view/lightning-black-guy-lightning-you-should-kill-your-self-you-should-treat-your-self-gif-24988025`)
+          : message.channel.send(`https://i.kym-cdn.com/photos/images/original/002/229/998/1f4`)
+
+        return
+      }
+
+      rand = randomIntFromInterval(0, 1)
+      rand === 0 ? message.channel.send("https://tenor.com/view/lightning-black-guy-lightning-you-should-kill-your-self-you-should-treat-your-self-gif-24988025")
+        : message.channel.send("https://i.kym-cdn.com/photos/images/original/002/229/998/1f4")
       return
     }
     case "poggers": {
@@ -170,10 +211,16 @@ diversos:\n\
       rand = randomIntFromInterval(0, 1000)
       console.log(`count: ${rand}`)
       if (rand === 453) {
-        embedMessage = new EmbedBuilder().setTitle("Tamanhao do pene").setDescription(`Pau do ${message.author.username}:\n8${"=".repeat(68)}D`).setColor("Random")
+        embedMessage = new EmbedBuilder()
+          .setTitle("Tamanhao do pene")
+          .setDescription(`Pau do ${message.author.username}:\n8${"=".repeat(68)}D`)
+          .setColor("Random")
       }
       else {
-        embedMessage = new EmbedBuilder().setTitle("Tamain do pene").setDescription(`Pau do ${message.author.username}:\n8${"=".repeat(randomIntFromInterval(0, 20))}D`).setColor("Random")
+        embedMessage = new EmbedBuilder()
+          .setTitle("Tamain do pene")
+          .setDescription(`Pau do ${message.author.username}:\n8${"=".repeat(randomIntFromInterval(0, 20))}D`)
+          .setColor("Random")
       }
 
       message.channel.send({ embeds: [embedMessage] })
@@ -181,6 +228,8 @@ diversos:\n\
     }
     case "lyrics": {
       const args = message.content.split(" ")
+
+      let musiga
 
       if (!args[1]) {
         if (serverQueue) {
@@ -200,16 +249,86 @@ diversos:\n\
 
       let lyrics
 
-      if (firstSong) {
-        lyrics = await firstSong.lyrics()
+      try {
+        if (firstSong) {
+          lyrics = await firstSong.lyrics()
+        }
+        else {
+          return message.reply("Música não encontrada :(")
+        }
+      } catch (error) {
+        console.log(error)
+        message.reply("Houve um erro ao procurar a música :(")
+        throw err
+      }
+
+      if (lyrics.length > 4096) {
+        embedMessage = new EmbedBuilder().setTitle(firstSong.title).setThumbnail(firstSong.thumbnail)
+
+        message.reply("Esta letra é grande demais!")
+        message.channel.send({ content: "Música encontrada:", embeds: [embedMessage] })
       }
       else {
-        return message.reply("Música não encontrada :(")
+        embedMessage = new EmbedBuilder()
+          .setDescription(lyrics)
+          .setTitle(firstSong.title)
+          .setThumbnail(firstSong.thumbnail)
+        message.channel.send({ embeds: [embedMessage] })
       }
 
-      embedMessage = new EmbedBuilder().setDescription(lyrics).setTitle(firstSong.title).setThumbnail(firstSong.thumbnail)
+      return
+    }
+    case "video": {
+      const args = message.content.split(" ")
 
-      message.channel.send({ embeds: [embedMessage] })
+      if (!args[1]) return message.reply("Diga qual vídeo deseja!")
+
+      let url
+      let title
+
+      if (ytdl.validateURL(args[1])) {
+        url = args[1]
+      } else {
+        const { videos } = await yts(args.slice(1).join(" "))
+        if (!videos.length) return message.reply("Nenhum vídeo encontrado!")
+
+        segundos = videos[0].duration.seconds
+
+        if (segundos > tempoVideoMaximoSec) return message.reply(`Vídeo muito longo! (Tempo de vídeo máximo: ${tempoVideoMaximoString}`)
+
+        url = videos[0].url
+      }
+
+      const info = await ytdl.getInfo(url)
+      title = info.videoDetails.title
+
+      const videoFormat = ytdl.chooseFormat(info.formats, { filter: 'audioandvideo', quality: 'highest' })
+      const videoStream = ytdl.downloadFromInfo(info, { format: videoFormat })
+      const videoFilePath = 'video.mp4'
+
+      message.reply("Procurando no YouTube...")
+        .then(replyMessage => {
+          // Baixar o vídeo e enviar depois que estiver pronto
+          videoStream.pipe(fs.createWriteStream(videoFilePath))
+
+          videoStream.on('finish', () => {
+            // Editar a primeira mensagem para responder com a segunda mensagem
+            replyMessage.edit({ content: title, files: [videoFilePath] })
+              .then(() => {
+                fs.unlink(videoFilePath, (error) => {
+                  if (error) {
+                    console.error('Erro ao excluir o arquivo:', error);
+                  } else {
+                    console.log('Arquivo excluído com sucesso:', videoFilePath);
+                  }
+                })
+                console.log('Vídeo enviado com sucesso!')
+              })
+              .catch(console.error);
+          });
+        })
+        .catch(console.error)
+
       return
     }
     case "play":
@@ -237,14 +356,14 @@ diversos:\n\
     case "quit":
     case "exit": {
       let connection = voice.getVoiceConnection(message.guild.id)
-      
+
       if (connection === undefined) {
         await message.reply("Não to na call carai")
         return
       }
 
       if (serverQueue) {
-        stop(message, serverQueue)        
+        stop(message, serverQueue)
         message.reply(`Chupa meu paupau`)
       }
       else {
@@ -274,7 +393,7 @@ async function execute(message, serverQueue) {
   canal = message.member.voice.channel
   // const permissions = message.guild.me.permissions
   // if (!permissions.has(Permissions.FLAGS.CONNECT) || !permissions.has(Permissions.FLAGS.SPEAK)) return message.channel.send('Preciso de permissões para conectar e falar!')
-  if (!canal) return message.channel.send("Você não está em um canal de voz!")
+  if (!canal) return message.reply("Você não está em um canal de voz!")
 
   const args = message.content.split(" ")
 
@@ -284,13 +403,16 @@ async function execute(message, serverQueue) {
 
   if (ytdl.validateURL(args[1])) {
     url = args[1]
-    const songInfo = await ytdl.getInfo(url);
+    const songInfo = await ytdl.getInfo(url)
     segundos = songInfo.videoDetails.lengthSeconds
 
-    if (segundos > tempoVideoMaximoSec) return message.channel.send(`Vídeo muito longo! (Tempo de vídeo máximo: ${tempoVideoMaximoString}`)
+    if (segundos > tempoMusicaMaximoSec) return message.reply(`Música muito longa! (Tempo de música máximo: ${tempoMusicaMaximoString}`)
 
     let minutos = Math.floor(segundos / 60)
     let segundosRestantes = segundos % 60
+
+    segundosRestantes = segundosRestantes < 10 ? `0${segundosRestantes}` : segundosRestantes
+
     song = {
       requestedBy: message.author,
       title: songInfo.videoDetails.title,
@@ -300,14 +422,16 @@ async function execute(message, serverQueue) {
     };
   } else {
     const { videos } = await yts(args.slice(1).join(" "))
-    if (!videos.length) return message.channel.send("Nenhuma música encontrada!")
+    if (!videos.length) return message.reply("Nenhuma música encontrada!")
 
     segundos = videos[0].duration.seconds
 
-    if (segundos > tempoVideoMaximoSec) return message.channel.send(`Vídeo muito longo! (Tempo de vídeo máximo: ${tempoVideoMaximoString}`)
+    if (segundos > tempoVideoMaximoSec) return message.reply(`Vídeo muito longo! (Tempo de vídeo máximo: ${tempoVideoMaximoString}`)
 
     let minutos = Math.floor(segundos / 60)
     let segundosRestantes = segundos % 60
+
+    segundosRestantes = segundosRestantes < 10 ? `0${segundosRestantes}` : segundosRestantes
 
     song = {
       requestedBy: message.author,
@@ -376,14 +500,14 @@ async function execute(message, serverQueue) {
     }
   } else {
     serverQueue.songs.push(song)
-    return message.channel.send(`Adicionada à fila: **${song.title}**`)
+    return message.channel.send(`Adicionada à fila: **${song.title}** ${song.duration}`)
   }
 }
 
 function skip(message, serverQueue) {
   if (!message.member.voice.channel)
-    return message.channel.send(
-      "Você deve estar na call para skippar a música!"
+    return message.reply(
+      "Você deve estar em call para skippar a música!"
     )
   if (!serverQueue)
     return message.channel.send("Não há músicas para skippar!")
@@ -404,7 +528,7 @@ function skip(message, serverQueue) {
 
 function resume(message, serverQueue) {
   if (!message.member.voice.channel)
-    return message.channel.send("Você deve estar na call para retomar a música!")
+    return message.reply("Você deve estar em call para retomar a música!")
   if (!serverQueue)
     return message.channel.send("Não há músicas para retomar!")
 
@@ -413,7 +537,7 @@ function resume(message, serverQueue) {
 
 function pause(message, serverQueue) {
   if (!message.member.voice.channel)
-    return message.channel.send("Você deve estar na call para pausar a música!")
+    return message.reply("Você deve estar em call para pausar a música!")
   if (!serverQueue)
     return message.channel.send("Não há músicas para pausar!")
   serverQueue.player.pause()
@@ -421,7 +545,7 @@ function pause(message, serverQueue) {
 
 function fila(message, serverQueue) {
   if (!message.member.voice.channel)
-    return message.channel.send("Você deve estar na call para ver a fila!")
+    return message.reply("Você deve estar em call para ver a fila!")
   if (!serverQueue)
     return message.channel.send("Não há músicas na fila!")
 
@@ -432,8 +556,7 @@ function fila(message, serverQueue) {
   message.channel.send({
     embeds: [
       new EmbedBuilder()
-        .setDescription(`**Fila**\n\n${queueString}`
-        )
+        .setDescription(`**Fila**\n\n${queueString}`)
     ]
   })
 }
@@ -449,6 +572,20 @@ function stop(message, serverQueue) {
   player.removeAllListeners()
 }
 
+function getUserFromMention(mention) {
+  if (!mention) return;
+
+  if (mention.startsWith('<@') && mention.endsWith('>')) {
+    mention = mention.slice(2, -1);
+
+    if (mention.startsWith('!')) {
+      mention = mention.slice(1);
+    }
+
+    return client.users.cache.get(mention);
+  }
+}
+
 const play = async (song, serverQueue) => {
 
   const stream = await ytdl(song.url, { filter: 'audioonly' })
@@ -459,7 +596,7 @@ const play = async (song, serverQueue) => {
 
   serverQueue.player.play(songStream)
 
-  serverQueue.textChannel.send(`Tocando: **${song.title}**`)
+  serverQueue.textChannel.send(`Tocando: **${song.title}** ${song.duration}`)
 }
 
 client.login(process.env.TOKEN)
