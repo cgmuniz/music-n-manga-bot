@@ -6,33 +6,28 @@ module.exports = {
         .setName("queue")
         .setDescription("Mostra as 10 primeiras músicas da fila"),
 
-    execute: async ({ client, interaction }) => {
-        const queue = client.player.queue(interaction.guildId)
+    execute: async ({ client, message, args, serverQueue }) => {
+        if (!message.member.voice.channel)
+            return message.reply("Você deve estar em call para ver a fila!")
+        if (!serverQueue)
+            return message.channel.send("Não há músicas na fila!")
 
-        // check if there are songs in the queue
-        if (!queue || !queue.playing)
-        {
-            await interaction.reply({content: "Não há músicas na fila", ephemeral: true});
-            return;
-        }
-
-        // Get the first 10 songs in the queue
-        const queueString = queue.tracks.slice(0, 10).map((song, i) => {
-            return `${i}) [${song.duration}]\` ${song.title} - <@${song.requestedBy.id}>`
+        const queueString = serverQueue.songs.slice(0, 10).map((song, i) => {
+            return `${i + 1}) ${song.duration} \`${song.title}\` - <@${song.requestedBy.id}>`
         }).join("\n")
 
-        // Get the current song
-        const currentSong = queue.current
-
-        await interaction.reply({
+        message.channel.send({
             embeds: [
                 new EmbedBuilder()
-                    .setDescription(`**Tocando nesse momento**\n` + 
+                    .setDescription(`**Fila**\n\n${queueString}`)
+                /*new EmbedBuilder()
+                    .setDescription(`**Tocando nesse momento**\n` +
                         (currentSong ? `\`[${currentSong.duration}]\` ${currentSong.title} - <@${currentSong.requestedBy.id}>` : "Nenhuma") +
                         `\n\n**Fila**\n${queueString}`
                     )
-                    .setThumbnail(currentSong.setThumbnail)
+                    .setThumbnail(currentSong.setThumbnail)*/
             ]
         })
+
     }
 }

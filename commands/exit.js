@@ -1,23 +1,30 @@
 const { SlashCommandBuilder } = require("@discordjs/builders")
 
+const voice = require('@discordjs/voice');
+
+const stopMusic = require(`../utils/stopMusic.js`);
+
 module.exports = {
 	data: new SlashCommandBuilder()
-        .setName("exit")
-        .setDescription("Desconecta o bot do canal"),
-	execute: async ({ client, interaction }) => {
+		.setName("exit")
+		.setDescription("Desconecta o bot do canal"),
+	execute: async ({ client, message, args, serverQueue, queue, player }) => {
 
-        // Get the current queue
-		const queue = client.player.getQueue(interaction.guildId)
+		let connection = voice.getVoiceConnection(message.guild.id)
 
-		if (!queue)
-		{
-			await interaction.reply({content: "Não há músicas na fila", ephemeral: true})
-			return;
+		if (connection === undefined) {
+			await message.reply("Não to na call carai")
+			return
 		}
 
-        // Deletes all the songs from the queue and exits the channel
-		queue.destroy();
+		if (serverQueue) {
+			stopMusic.execute(message, serverQueue, queue, player)
+			message.reply(`Chupa meu paupau`)
+		}
+		else {
+			message.reply(`Não to na call carai`)
+		}
 
-        await interaction.reply("Chupa meu papau")
+		return
 	},
 }

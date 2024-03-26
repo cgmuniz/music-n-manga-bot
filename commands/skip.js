@@ -1,35 +1,31 @@
 const { SlashCommandBuilder } = require("@discordjs/builders")
-const { EmbedBuilder } = require("discord.js")
+
+const stopMusic = require(`../utils/stopMusic.js`);
+const playMusic = require(`../utils/playMusic.js`);
 
 module.exports = {
-	data: new SlashCommandBuilder()
+    data: new SlashCommandBuilder()
         .setName("skip")
         .setDescription("Pula a música atual"),
 
-	execute: async ({ client, interaction }) => {
+    execute: async ({ client, message, args, serverQueue, queue, player }) => {
 
-        // Get the queue for the server
-		const queue = client.player.getQueue(interaction.guildId)
+        if (!message.member.voice.channel)
+            return message.reply(
+                "Você deve estar em call para skippar a música!"
+            )
+        if (!serverQueue)
+            return message.channel.send("Não há músicas para skippar!")
 
-        // If there is no queue, return
-		if (!queue)
-        {
-            await interaction.reply({content: "Não há músicas na fila", ephemeral: true});
+        message.channel.send(`Skippada: **${serverQueue.songs[0].title}** ${serverQueue.songs[0].duration}`)
+        serverQueue.songs.shift(); // Remove a música que acabou de tocar
+        if (serverQueue.songs.length > 0) {
+            // Se ainda houver músicas na fila, toque a próxima
+            song = serverQueue.songs[0]
+            playMusic.play(song, serverQueue)
+        } else {
+            stopMusic.execute(message, serverQueue, queue, player)
             return;
         }
-
-        const currentSong = queue.current
-
-        // Skip the current song
-		queue.skip()
-
-        // Return an embed to the user saying the song has been skipped
-        await interaction.reply({
-            embeds: [
-                new EmbedBuilder()
-                    .setDescription(`${currentSong.title} foi skippada!`)
-                    .setThumbnail(currentSong.thumbnail)
-            ]
-        })
-	},
+    },
 }

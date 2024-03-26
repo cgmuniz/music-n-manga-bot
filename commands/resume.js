@@ -1,23 +1,16 @@
 const { SlashCommandBuilder } = require("@discordjs/builders")
 
 module.exports = {
-	data: new SlashCommandBuilder()
+    data: new SlashCommandBuilder()
         .setName("resume")
         .setDescription("Retoma a música atual"),
-	execute: async ({ client, interaction }) => {
-        // Get the queue for the server
-		const queue = client.player.getQueue(interaction.guildId)
+    execute: async ({ client, message, args, serverQueue }) => {
+        if (!message.member.voice.channel)
+            return message.reply("Você deve estar em call para retomar a música!")
+        if (!serverQueue)
+            return message.channel.send("Não há músicas para retomar!")
 
-        // Check if the queue is empty
-		if (!queue)
-        {
-            await interaction.reply({content: "Não há músicas na fila", ephemeral: true});
-            return;
-        }
-
-        // Pause the current song
-		queue.setPaused(false);
-
-        await interaction.reply("Player retomou.")
-	},
+        serverQueue.player.unpause()
+        message.channel.send(`Tocando: **${serverQueue.songs[0].title}** ${serverQueue.songs[0].duration}`)
+    },
 }

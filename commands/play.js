@@ -1,148 +1,123 @@
 const { SlashCommandBuilder } = require("@discordjs/builders")
-const { EmbedBuilder } = require("discord.js")
-const { YouTubeExtractor } = require("@discord-player/extractor");
 
+const ytdl = require("ytdl-core");
+const yts = require("yt-search");
+const { joinVoiceChannel, createAudioResource } = require("@discordjs/voice");
+
+const tempoMusicaMaximoString = "1 hora"
+const tempoMusicaMaximoSec = 3600
+
+const stopMusic = require(`../utils/stopMusic.js`);
+const playMusic = require(`../utils/playMusic.js`);
 
 module.exports = {
-    data: new SlashCommandBuilder()
+    /*data: new SlashCommandBuilder()
         .setName("play")
         .setDescription("Toca uma música do YouTube.")
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("search")
-                .setDescription("Procura uma música e toca ela")
-                .addStringOption(option =>
-                    option.setName("searchterms").setDescription("search keywords").setRequired(true)
-                )
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("playlist")
-                .setDescription("Toca uma playlist do YouTube")
-                .addStringOption(option => option.setName("url").setDescription("url da playlist").setRequired(true))
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("song")
-                .setDescription("Toca uma música do YouTube")
-                .addStringOption(option => option.setName("url").setDescription("url da música").setRequired(true))
-        ),
-    execute: async ({ client, interaction }) => {
+        .addStringOption(option =>
+            option.setName("url ou pesquisa").setRequired(true)
+        ),*/
+    execute: async ({ client, message, args, serverQueue, queue, player }) => {
+        canal = message.member.voice.channel
+        // const permissions = message.guild.me.permissions
+        // if (!permissions.has(Permissions.FLAGS.CONNECT) || !permissions.has(Permissions.FLAGS.SPEAK)) return message.channel.send('Preciso de permissões para conectar e falar!')
+        if (!canal) return message.reply("Você não está em um canal de voz!")
 
-        // Make sure the user is inside a voice channel
-        if (!interaction.member.voice.channel) return interaction.reply({ content: "Você não está em um canal de voz!", ephemeral: true });
+        let song = {}
 
-        // Create a play queue for the server
-        const queue = await client.player.queues.create(interaction.guild);
+        if (!args[0]) return message.reply("Diga qual música deseja!")
 
-        // Wait until you are connected to the channel
-        if (!queue.connection) await queue.connect(interaction.member.voice.channel)
+        if (ytdl.validateURL(args[0])) {
+            url = args[0]
+            const songInfo = await ytdl.getInfo(url)
+            segundos = songInfo.videoDetails.lengthSeconds
 
-        let embed = new EmbedBuilder()
+            if (segundos > tempoMusicaMaximoSec) return message.reply(`Música muito longa! (Tempo de música máximo: ${tempoMusicaMaximoString})`)
 
-        if (interaction.options.getSubcommand() === "song") {
-            let url = interaction.options.getString("url")
+            song = {
+                requestedBy: message.author,
+                title: songInfo.videoDetails.title,
+                url: url,
+                thumbnail: songInfo.videoDetails.thumbnails,
+                duration: `(${songInfo.timestamp})`
+            };
+        } else {
+            const { videos } = await yts(args.join(" "))
+            if (!videos.length) return message.reply("Nenhuma música encontrada!")
 
-            // Search for the song using the discord-player
-            const result = await client.player.search(url, {
-                requestedBy: interaction.user,
-                searchEngine: `ext:${YouTubeExtractor.identifier}`
-            })
+            segundos = videos[0].duration.seconds
 
-            // finish if no tracks were found
-            if (result.tracks.length === 0)
-                return interaction.reply({ content: "Sem resultados", ephemeral: true })
+            if (segundos > tempoMusicaMaximoSec) return message.reply(`Música muito longa! (Tempo de música máximo: ${tempoMusicaMaximoString})`)
 
-            // Add the track to the queue
-            const song = result.tracks[0]
-            await queue.addTrack(song)
-            embed
-                .setDescription(`**[${song.title}](${song.url})** foi adicionada à fila!`)
-                .setThumbnail(song.thumbnail)
-                .setFooter({ text: `Duração: ${song.duration}` })
-
-            if (!queue.playing)
-                try {
-                    // Tenta reproduzir a música
-                    await queue.play(song.url)
-
-                    // Se a música começou a ser reproduzida com sucesso, você pode prosseguir com outras ações aqui
-                    console.log('Música reproduzindo com sucesso')
-                } catch (error) {
-                    // Se ocorrer um erro durante a reprodução da música, você pode lidar com ele aqui
-                    console.error('Erro ao reproduzir música:', error)
-                }
-
-        }
-        else if (interaction.options.getSubcommand() === "playlist") {
-
-            // Search for the playlist using the discord-player
-            let url = interaction.options.getString("url")
-            const result = await client.player.search(url, {
-                requestedBy: interaction.user,
-                searchEngine: `ext:${YouTubeExtractor.identifier}`
-            })
-
-            if (result.tracks.length === 0)
-                return interaction.reply({ content: `Nenhuma playslist encontrada com ${url}`, ephemeral: true })
-
-            // Add the tracks to the queue
-            const playlist = result.playlist
-            await queue.addTracks(result.tracks)
-            embed
-                .setDescription(`**${result.tracks.length} músicas de [${playlist.title}](${playlist.url})** foram adicionadas à fila!`)
-                .setThumbnail(playlist.thumbnail)
-
-            if (!queue.playing)
-                try {
-                    // Tenta reproduzir a música
-                    await queue.play(song.url)
-
-                    // Se a música começou a ser reproduzida com sucesso, você pode prosseguir com outras ações aqui
-                    console.log('Música reproduzindo com sucesso')
-                } catch (error) {
-                    // Se ocorrer um erro durante a reprodução da música, você pode lidar com ele aqui
-                    console.error('Erro ao reproduzir música:', error)
-                }
-
-        }
-        else if (interaction.options.getSubcommand() === "search") {
-
-            // Search for the song using the discord-player
-            let url = interaction.options.getString("searchterms")
-            const result = await client.player.search(url, {
-                requestedBy: interaction.user,
-                searchEngine: `ext:${YouTubeExtractor.identifier}`
-            })
-
-            // finish if no tracks were found
-            if (result.tracks.length === 0)
-                return interaction.reply({ content: "Sem resultados", ephemeral: true })
-
-            // Add the track to the queue
-            const song = result.tracks[0]
-            await queue.addTrack(song)
-            embed
-                .setDescription(`**[${song.title}](${song.url})** has been added to the Queue`)
-                .setThumbnail(song.thumbnail)
-                .setFooter({ text: `Duration: ${song.duration}` })
-
-
-            if (!queue.playing)
-                try {
-                    // Tenta reproduzir a música
-                    await queue.play(song.url)
-
-                    // Se a música começou a ser reproduzida com sucesso, você pode prosseguir com outras ações aqui
-                    console.log('Música reproduzindo com sucesso')
-                } catch (error) {
-                    // Se ocorrer um erro durante a reprodução da música, você pode lidar com ele aqui
-                    console.error('Erro ao reproduzir música:', error)
-                }
+            song = {
+                requestedBy: message.author,
+                title: videos[0].title,
+                url: videos[0].url,
+                thumbnail: videos[0].thumbnail,
+                duration: `(${videos[0].timestamp})`
+            };
         }
 
-        await interaction.reply({
-            embeds: [embed]
-        })
+        if (!serverQueue) {
+            const queueConstruct = {
+                textChannel: message.channel,
+                voiceChannel: canal,
+                connection: null,
+                songs: [],
+                volume: 5,
+                player: null,
+                playing: true
+            }
+
+            queue.set(message.guild.id, queueConstruct)
+
+            serverQueue = queue.get(message.guild.id)
+
+            serverQueue.songs.push(song)
+
+            try {
+                var connection =
+                    await joinVoiceChannel({
+                        channelId: canal.id, // Id canal de voz
+                        guildId: canal.guild.id, // Id servidor
+                        adapterCreator: canal.guild.voiceAdapterCreator
+                    })
+                queueConstruct.connection = connection
+                queueConstruct.player = player;
+
+                player.addListener("stateChange", (oldOne, newOne) => {
+                    if (oldOne.status == "idle") {
+
+                    }
+                    else if (newOne.status == "idle") {
+                        console.log("The song finished")
+                        if (serverQueue) {
+                            serverQueue.songs.shift(); // Remove a música que acabou de tocar
+                            if (serverQueue.songs.length > 0) {
+                                // Se ainda houver músicas na fila, toque a próxima
+                                song = serverQueue.songs[0]
+                                playMusic.play(song, serverQueue)
+                            } else {
+                                stopMusic.execute(message, serverQueue, queue, player)
+                                return
+                            }
+                        } else {
+                            console.log("Não há fila de reprodução para o servidor");
+                        }
+                    }
+                })
+
+                playMusic.play(serverQueue.songs[0], serverQueue)
+            } catch (err) {
+                console.log(err);
+                queue.delete(message.guild.id);
+                message.channel.send("Houve um erro ao conectar")
+                throw err
+            }
+        } else {
+            serverQueue.songs.push(song)
+            return message.channel.send(`Adicionada à fila: **${song.title}** ${song.duration}`)
+        }
+
     },
 }
