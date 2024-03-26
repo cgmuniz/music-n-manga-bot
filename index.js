@@ -7,7 +7,7 @@ const { YouTubeExtractor } = require("@discord-player/extractor")
 
 const queue = new Map();
 
-const {  createAudioPlayer } = require("@discordjs/voice")
+const { createAudioPlayer } = require("@discordjs/voice")
 
 const fs = require("node:fs")
 const path = require("node:path")
@@ -24,7 +24,7 @@ const client = new Client(
   }
 )
 
-const config = require("./config.json")
+const config = require("./config.json");
 
 /*
 // Carregar os comandos
@@ -191,5 +191,11 @@ function runCommandServerQueue(commandName, client, message, args, serverQueue, 
     console.log(error)
   }
 }
+
+
+const verificarNovoCapitulo = require("./utils/verificarNovoCapitulo")
+setInterval(() => {
+  verificarNovoCapitulo.execute(client);
+}, 15000)
 
 client.login(process.env.TOKEN)
