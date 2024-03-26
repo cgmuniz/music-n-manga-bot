@@ -33,13 +33,18 @@ module.exports = {
             segundos = songInfo.videoDetails.lengthSeconds
 
             if (segundos > tempoMusicaMaximoSec) return message.reply(`Música muito longa! (Tempo de música máximo: ${tempoMusicaMaximoString})`)
+            
+            let minutos = Math.floor(segundos / 60)
+            let segundosRestantes = segundos % 60
 
+            segundosRestantes = segundosRestantes < 10 ? `0${segundosRestantes}` : segundosRestantes
+            
             song = {
                 requestedBy: message.author,
                 title: songInfo.videoDetails.title,
                 url: url,
                 thumbnail: songInfo.videoDetails.thumbnails,
-                duration: `(${songInfo.timestamp})`
+                duration: `(${minutos}:${segundosRestantes})`
             };
         } else {
             const { videos } = await yts(args.join(" "))
