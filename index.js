@@ -107,7 +107,7 @@ client.on("messageCreate", async (message) => {
         `**Comandos do bot:**\n\
 \`\`\`&help (alias: &h &ajuda): mostra os comandos existentes do bot\n\n\
 mangás:\n\
-  &manga (sub/unsub): mostra uma lista com os mangás que você pode se inscrever\n\
+  &manga (sub/unsub): mostra uma lista com os mangás que você pode se inscrever\n\n\
 música:\n\
   &lyrics: exibe a letra de uma música\n\
   &play (alias: &p): procura e toca uma música\n\
