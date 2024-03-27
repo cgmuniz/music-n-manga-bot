@@ -143,11 +143,11 @@ diversos:\n\
     case "pp": {
       return runCommand("pp", client, message, args)
     }
-    case "mangasub": {
-      return runCommand("sub", client, message, args)
-    }
-    case "mangaunsub": {
-      return runCommand("unsub", client, message, args)
+    case "manga": {
+      if(args[0] === "sub") return runCommand("sub", client, message, args)
+      if(args[0] === "unsub") return runCommand("unsub", client, message, args)
+
+      return message.reply("Quer se inscrever ou cancelar inscrição? `[&manga (sub/unsub)]`")
     }
     case "lyrics": {
       return runCommandServerQueue("lyrics", client, message, args, serverQueue)
@@ -199,9 +199,9 @@ function runCommandServerQueue(commandName, client, message, args, serverQueue, 
 }
 
 
-const verificarNovoCapitulo = require("./utils/mangasSubs.js")
+const mangasSubs = require("./utils/mangasSubs.js")
 setInterval(() => {
-  verificarNovoCapitulo.notificar(client);
+  mangasSubs.notificar(client);
 }, 24 * 60 * 60 * 1000)
 
 client.login(process.env.TOKEN)

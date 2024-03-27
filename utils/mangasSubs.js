@@ -3,14 +3,7 @@ const { EmbedBuilder } = require('discord.js');
 const axios = require('axios');
 const fs = require('fs').promises;
 
-const arquivoSubsMangas = './data/subsMangas.json';
-
-const mangas = [
-    {id: "a77742b1-befd-49a4-bff5-1ad4e6b0ef7b", title: "Chainsaw Man"},
-    {id: "a96676e5-8ae2-425e-b549-7f15dd34a6d8", title: "Komi-san wa Komyushou Desu."},
-    {id: "296cbc31-af1a-4b5b-a34b-fee2b4cad542", title: "Oshi no Ko"},
-    {id: "c52b2ce3-7f95-469c-96b0-479524fb7a1a", title: "Jujutsu Kaisen"}
-]
+const arquivoSubsMangas = './data/mangas.json';
 
 const url = "https://api.mangadex.org"
 
@@ -18,6 +11,7 @@ const mangadex = "https://mangadex.org/title"
 
 let mangaCapsData
 let mangaData
+let mangas
 
 languages = ["pt-br"]
 
@@ -25,7 +19,6 @@ const dataAtual = new Date();
 const dataLimite = new Date(dataAtual.getTime() - (24 * 60 * 60 * 1000)).toISOString();
 const dataLimiteSemFuso = dataLimite.slice(0, -5);
 
-// Função para carregar as inscrições dos usuários do arquivo JSON
 async function carregarInscricoes() {
     try {
         const existeArquivo = await fs.access(arquivoSubsMangas).then(() => true).catch(() => false);
@@ -36,12 +29,15 @@ async function carregarInscricoes() {
         }
         // Se o arquivo existir, leia e retorne os dados
         const dados = await fs.readFile(arquivoSubsMangas, { encoding: 'utf8' });
-        return JSON.parse(dados);
+        mangas = JSON.parse(dados)
+        return
     } catch (error) {
         // Se ocorrer qualquer erro, lance o erro para tratamento posterior
         throw error;
     }
 }
+
+carregarInscricoes()
 
 // Função para salvar as inscrições dos usuários no arquivo JSON
 async function salvarInscricoes(inscricoes) {
@@ -49,40 +45,36 @@ async function salvarInscricoes(inscricoes) {
 }
 
 // Função para inscrever um usuário em um mangá específico
-async function inscreverUsuario(message, userId, mangaId) {
-    const inscricoes = await carregarInscricoes();
-    if (!inscricoes[mangaId]) {
-        inscricoes[mangaId] = [];
+async function inscreverUsuario(message, userId, manga) {
+    if (!mangas[manga].subs) {
+        mangas[manga].subs = [];
     }
-    if (!inscricoes[mangaId].includes(userId)) {
-        inscricoes[mangaId].push(userId);
-        await salvarInscricoes(inscricoes);
+    if (!mangas[manga].subs.includes(userId)) {
+        mangas[manga].subs.push(userId);
+        await salvarInscricoes(mangas);
 
-        message.reply("Sua inscrição para o mangá foi feita")
+        return message.reply("Sua inscrição para o mangá foi feita!")
     }
 }
 
 // Função para cancelar a inscrição de um usuário em um mangá específico
-async function cancelarInscricaoUsuario(message, userId, mangaId) {
-    const inscricoes = await carregarInscricoes();
-    if (inscricoes[mangaId] && inscricoes[mangaId].includes(userId)) {
-        inscricoes[mangaId] = inscricoes[mangaId].filter(id => id !== userId);
-        await salvarInscricoes(inscricoes);
-        message.reply("Inscrição cancelada com sucesso")
+async function cancelarInscricaoUsuario(message, userId, manga) {
+    if (mangas[manga].subs && mangas[manga].subs.includes(userId)) {
+        mangas[manga].subs = mangas[manga].subs.filter(id => id !== userId);
+        await salvarInscricoes(mangas);
+        return message.reply("Inscrição cancelada com sucesso!")
     }
 }
 
 async function notificarCaps(client) {
+    for (const mangaKey of Object.keys(mangas)) {
 
-    const inscricoes = await carregarInscricoes()
+        const manga = mangas[mangaKey];
 
-    for (const manga of mangas) {
-        let usuariosInscritos
+        const usuariosInscritos = manga.subs
 
-        if (inscricoes[manga.id]) usuariosInscritos = inscricoes[manga.id]
-
-        if (usuariosInscritos) {
-            const novoCapitulo = await verificarNovoCapitulo(client, manga.id);
+        if (usuariosInscritos.length > 0) {
+            const novoCapitulo = await verificarNovoCapitulo(manga.id);
 
             if (novoCapitulo) {
                 for (const userId of usuariosInscritos) {
@@ -148,10 +140,10 @@ module.exports = {
     notificar: async (client) => {
         notificarCaps(client)
     },
-    sub: (message, userId, mangaId) => {
-        inscreverUsuario(message, userId, mangaId)
+    sub: (message, userId, manga) => {
+        inscreverUsuario(message, userId, manga)
     },
-    unsub: (message, userId, mangaId) => {
-        cancelarInscricaoUsuario(message, userId, mangaId)
+    unsub: (message, userId, manga) => {
+        cancelarInscricaoUsuario(message, userId, manga)
     }
 };
