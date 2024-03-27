@@ -144,8 +144,7 @@ diversos:\n\
       return runCommand("pp", client, message, args)
     }
     case "manga": {
-      if(args[0] === "sub") return runCommand("sub", client, message, args)
-      if(args[0] === "unsub") return runCommand("unsub", client, message, args)
+      if(args[0] === "sub" || args[0] === "unsub") return runCommand("sub", client, message, args)
 
       return message.reply("Quer se inscrever ou cancelar inscrição? `[&manga (sub/unsub)]`")
     }

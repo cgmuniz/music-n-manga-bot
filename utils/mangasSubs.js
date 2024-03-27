@@ -13,8 +13,6 @@ let mangaCapsData
 let mangaData
 let mangas
 
-languages = ["pt-br"]
-
 const dataAtual = new Date();
 const dataLimite = new Date(dataAtual.getTime() - (24 * 60 * 60 * 1000)).toISOString();
 const dataLimiteSemFuso = dataLimite.slice(0, -5);
@@ -39,6 +37,35 @@ async function carregarInscricoes() {
 
 carregarInscricoes()
 
+async function getSubs(userId){
+    let mangasSubs = []
+
+    for (const mangaKey of Object.keys(mangas)) {
+
+        const manga = mangas[mangaKey];
+
+        if(manga.subs.includes(userId)){
+            mangasSubs.push(manga)
+        }
+    }
+    return mangasSubs
+}
+
+async function getUnsubs(userId){
+    let mangasUnsubs = []
+
+    for (const mangaKey of Object.keys(mangas)) {
+
+        const manga = mangas[mangaKey];
+
+        if(!manga.subs.includes(userId)){
+            mangasUnsubs.push(manga)
+        }
+    }
+
+    return mangasUnsubs
+}
+
 // Função para salvar as inscrições dos usuários no arquivo JSON
 async function salvarInscricoes(inscricoes) {
     await fs.writeFile(arquivoSubsMangas, JSON.stringify(inscricoes, null, 4), { encoding: 'utf8' });
@@ -53,7 +80,7 @@ async function inscreverUsuario(message, userId, manga) {
         mangas[manga].subs.push(userId);
         await salvarInscricoes(mangas);
 
-        return message.reply("Sua inscrição para o mangá foi feita!")
+        return
     }
 }
 
@@ -62,7 +89,7 @@ async function cancelarInscricaoUsuario(message, userId, manga) {
     if (mangas[manga].subs && mangas[manga].subs.includes(userId)) {
         mangas[manga].subs = mangas[manga].subs.filter(id => id !== userId);
         await salvarInscricoes(mangas);
-        return message.reply("Inscrição cancelada com sucesso!")
+        return
     }
 }
 
@@ -74,7 +101,7 @@ async function notificarCaps(client) {
         const usuariosInscritos = manga.subs
 
         if (usuariosInscritos.length > 0) {
-            const novoCapitulo = await verificarNovoCapitulo(manga.id);
+            const novoCapitulo = await verificarNovoCapitulo(manga.id, manga.language);
 
             if (novoCapitulo) {
                 for (const userId of usuariosInscritos) {
@@ -87,14 +114,14 @@ async function notificarCaps(client) {
 }
 
 
-async function verificarNovoCapitulo(manga) {
+async function verificarNovoCapitulo(manga, language) {
     try {
-        const response = await axios.get(`${url}/manga/${manga}/feed`, { params: { "translatedLanguage[]": languages, "createdAtSince": dataLimiteSemFuso } });
+        const response = await axios.get(`${url}/manga/${manga}/feed`, { params: { "translatedLanguage[]": language, "createdAtSince": dataLimiteSemFuso } });
 
         while (response.status === 503) {
             console.log("O servidor está indisponível. Tentando novamente em 10 minutos...");
             await new Promise(resolve => setTimeout(resolve, 600000));
-            response = await axios.get(`${url}/manga/${manga}/feed`, { params: { "translatedLanguage[]": languages, "createdAtSince": dataLimiteSemFuso } });
+            response = await axios.get(`${url}/manga/${manga}/feed`, { params: { "translatedLanguage[]": language, "createdAtSince": dataLimiteSemFuso } });
         }
 
         if (response.status === 200) {
@@ -133,17 +160,22 @@ async function verificarNovoCapitulo(manga) {
         console.error('Ocorreu um erro ao verificar o novo capítulo:', error);
     }
     return
-    //468524804769710101
 }
 
 module.exports = {
     notificar: async (client) => {
-        notificarCaps(client)
+        await notificarCaps(client)
     },
-    sub: (message, userId, manga) => {
-        inscreverUsuario(message, userId, manga)
+    sub: async (message, userId, manga) => {
+        await inscreverUsuario(message, userId, manga)
     },
-    unsub: (message, userId, manga) => {
-        cancelarInscricaoUsuario(message, userId, manga)
+    unsub: async (message, userId, manga) => {
+        await cancelarInscricaoUsuario(message, userId, manga)
+    },
+    getSubs: async (userId) => {
+        return await getSubs(userId)
+    },
+    getUnsubs: async (userId) => {
+        return await getUnsubs(userId)
     }
 };
