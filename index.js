@@ -143,6 +143,12 @@ diversos:\n\
     case "pp": {
       return runCommand("pp", client, message, args)
     }
+    case "mangasub": {
+      return runCommand("sub", client, message, args)
+    }
+    case "mangaunsub": {
+      return runCommand("unsub", client, message, args)
+    }
     case "lyrics": {
       return runCommandServerQueue("lyrics", client, message, args, serverQueue)
     }
@@ -193,9 +199,9 @@ function runCommandServerQueue(commandName, client, message, args, serverQueue, 
 }
 
 
-const verificarNovoCapitulo = require("./utils/verificarNovoCapitulo")
+const verificarNovoCapitulo = require("./utils/mangasSubs.js")
 setInterval(() => {
-  verificarNovoCapitulo.execute(client);
-}, 15000)
+  verificarNovoCapitulo.notificar(client);
+}, 24 * 60 * 60 * 1000)
 
 client.login(process.env.TOKEN)
