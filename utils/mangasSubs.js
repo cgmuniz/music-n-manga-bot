@@ -37,28 +37,28 @@ async function carregarInscricoes() {
 
 carregarInscricoes()
 
-async function getSubs(userId){
+async function getSubs(userId) {
     let mangasSubs = []
 
     for (const mangaKey of Object.keys(mangas)) {
 
         const manga = mangas[mangaKey];
 
-        if(manga.subs.includes(userId)){
+        if (manga.subs.includes(userId)) {
             mangasSubs.push(manga)
         }
     }
     return mangasSubs
 }
 
-async function getUnsubs(userId){
+async function getUnsubs(userId) {
     let mangasUnsubs = []
 
     for (const mangaKey of Object.keys(mangas)) {
 
         const manga = mangas[mangaKey];
 
-        if(!manga.subs.includes(userId)){
+        if (!manga.subs.includes(userId)) {
             mangasUnsubs.push(manga)
         }
     }
@@ -131,13 +131,20 @@ async function verificarNovoCapitulo(manga, language) {
         }
 
         if (mangaCapsData.data[0]) {
-            const responseManga = await axios.get(`${url}/manga/${manga}`)
+            const responseManga = await axios.get(`${url}/manga/${manga}`, { timeout: 10000 })
             mangaData = responseManga.data
 
             const capitulo = mangaCapsData.data[0].attributes
-            const titulo = mangaData.data.attributes.title.en
+            const titulo = mangaData.data.attributes.title.en || mangaData.data.attributes.title["ja-ro"]
 
-            const coverId = mangaData.data.relationships[2].id
+            let coverId
+
+            for (const relationship of mangaData.data.relationships) {
+                if (relationship.type === 'cover_art') {
+                    coverId = relationship.id;
+                    break;
+                }
+            }
 
             const responseCover = await axios.get(`${url}/cover/${coverId}`)
             const coverData = responseCover.data
@@ -153,7 +160,7 @@ async function verificarNovoCapitulo(manga, language) {
             return embedMessage
         }
     } catch (error) {
-        console.error('Ocorreu um erro ao verificar o novo capítulo:', error);
+        console.error(`Ocorreu um erro ao verificar o novo capítulo de ${manga}:`, error);
     }
     return
 }

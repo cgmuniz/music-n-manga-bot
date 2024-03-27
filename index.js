@@ -199,10 +199,39 @@ function runCommandServerQueue(commandName, client, message, args, serverQueue, 
   }
 }
 
-
 const mangasSubs = require("./utils/mangasSubs.js")
-setInterval(() => {
+
+function calcularTempo(horario) {
+  const agora = new Date();
+  const horarioAlvo = new Date(agora);
+
+  horarioAlvo.setHours(horario.hour, horario.minute, horario.second, 0);
+
+  if (agora > horarioAlvo) {
+      horarioAlvo.setDate(horarioAlvo.getDate() + 1);
+  }
+
+  const tempoAteProximoHorario = horarioAlvo - agora;
+  return tempoAteProximoHorario;
+}
+
+function executarAcaoH(horario, acao) {
+  const tempoAteProximoHorario = calcularTempo(horario);
+
+  setTimeout(() => {
+      acao();
+      setInterval(acao, 24 * 60 * 60 * 1000);
+  }, tempoAteProximoHorario);
+}
+
+const horario1 = { hour: 0, minute: 0, second: 0 }
+const horario2 = { hour: 12, minute: 0, second: 0 };
+
+function acao() {
   mangasSubs.notificar(client);
-}, 24 * 60 * 60 * 1000)
+}
+
+executarAcaoH(horario1, acao);
+executarAcaoH(horario2, acao);
 
 client.login(process.env.TOKEN)
