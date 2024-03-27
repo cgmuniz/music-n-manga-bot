@@ -8,7 +8,7 @@ module.exports = {
                 return
             }
 
-            return message.channel.send({ content: `<@${user.id}>`, files: ['./midia/risos.mp4'] })
+            return message.channel.send({ content: `<@${user.id}>`, files: ['./media/risos.mp4'] })
         }
 
         return message.reply({ files: ['./midia/risos.mp4'] })
