@@ -1,0 +1,30 @@
+{
+    "csm": {
+        "value": "csm",
+        "title": "Chainsaw Man",
+        "id": "a77742b1-befd-49a4-bff5-1ad4e6b0ef7b",
+        "language": "pt-br",
+        "subs": []
+    },
+    "jjk": {
+        "value": "jjk",
+        "title": "Jujutsu Kaisen",
+        "id": "c52b2ce3-7f95-469c-96b0-479524fb7a1a",
+        "language": "pt-br",
+        "subs": []
+    },
+    "komi": {
+        "value": "komi",
+        "title": "Komi-san wa Komyushou Desu.",
+        "id": "a96676e5-8ae2-425e-b549-7f15dd34a6d8",
+        "language": "pt-br",
+        "subs": []
+    },
+    "op": {
+        "value": "op",
+        "title": "One Piece",
+        "id": "a1c7c817-4e59-43b7-9365-09675a149a6f",
+        "language": "pt-br",
+        "subs": []
+    }
+}
