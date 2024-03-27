@@ -126,8 +126,6 @@ async function verificarNovoCapitulo(manga, language) {
 
         if (response.status === 200) {
             mangaCapsData = response.data
-
-            console.log("Informações dos capitulos:", mangaCapsData);
         } else {
             console.error("Falha ao obter informações do mangá.");
         }
@@ -135,8 +133,6 @@ async function verificarNovoCapitulo(manga, language) {
         if (mangaCapsData.data[0]) {
             const responseManga = await axios.get(`${url}/manga/${manga}`)
             mangaData = responseManga.data
-
-            console.log("Informações do mangá:", mangaData);
 
             const capitulo = mangaCapsData.data[0].attributes
             const titulo = mangaData.data.attributes.title.en
