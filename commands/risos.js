@@ -11,7 +11,7 @@ module.exports = {
             return message.channel.send({ content: `<@${user.id}>`, files: ['./media/risos.mp4'] })
         }
 
-        return message.reply({ files: ['./midia/risos.mp4'] })
+        return message.reply({ files: ['./media/risos.mp4'] })
     },
 }
 
