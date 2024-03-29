@@ -114,6 +114,8 @@ música:\n\
   &skip: pula uma música\n\
   &pause: pausa uma música\n\
   &resume: retoma uma música\n\
+  &loop: coloca a música atual em looping\n\
+  &shuffle: embaralha a fila de músicas\n\
   &queue (alias: &fila): mostra a fila atual de músicas\n\
   &quit (alias: &exit): desconecta o bot da call\n\n\
 vídeos:\n\
