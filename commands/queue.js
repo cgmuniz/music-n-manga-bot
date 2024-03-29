@@ -12,22 +12,24 @@ module.exports = {
         if (!serverQueue)
             return message.channel.send("Não há músicas na fila!")
 
-        const queueString = serverQueue.songs.slice(0, 10).map((song, i) => {
+        const musicaAtual = serverQueue.songs[0]
+
+        const musicaAtualmsg = `${musicaAtual.duration} \`${musicaAtual.title}\` - <@${musicaAtual.requestedBy.id}>`
+
+        let queueString
+
+        if (serverQueue.songs[1]) queueString = serverQueue.songs.slice(1, 10).map((song, i) => {
             return `${i + 1}) ${song.duration} \`${song.title}\` - <@${song.requestedBy.id}>`
         }).join("\n")
 
-        message.channel.send({
-            embeds: [
-                new EmbedBuilder()
-                    .setDescription(`**Fila**\n\n${queueString}`)
-                /*new EmbedBuilder()
-                    .setDescription(`**Tocando nesse momento**\n` +
-                        (currentSong ? `\`[${currentSong.duration}]\` ${currentSong.title} - <@${currentSong.requestedBy.id}>` : "Nenhuma") +
-                        `\n\n**Fila**\n${queueString}`
-                    )
-                    .setThumbnail(currentSong.setThumbnail)*/
-            ]
-        })
+        embedMessage = new EmbedBuilder()
+            .setDescription(`**Tocando nesse momento**\n\n${musicaAtualmsg}` +
+                (serverQueue.loop ? `\n*Em looping* :repeat:` : "") +
+                (queueString ? `\n\n**Fila**\n\n${queueString}` : "")
+            )
+            .setThumbnail(musicaAtual.thumbnail)
+
+        message.channel.send({ embeds: [ embedMessage ] })
 
     }
 }

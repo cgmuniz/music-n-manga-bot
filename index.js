@@ -169,10 +169,15 @@ diversos:\n\
     case "resume": {
       return runCommandServerQueue("resume", client, message, args, serverQueue)
     }
+    case "loop": {
+      return runCommandServerQueue("loop", client, message, args, serverQueue)
+    }
     case "queue":
     case "fila": {
       return runCommandServerQueue("queue", client, message, args, serverQueue)
     }
+    case "stop":
+    case "leave":
     case "quit":
     case "exit": {
       return runCommandServerQueue("exit", client, message, args, serverQueue, queue, player)

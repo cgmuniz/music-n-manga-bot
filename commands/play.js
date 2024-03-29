@@ -2,7 +2,7 @@ const { SlashCommandBuilder } = require("@discordjs/builders")
 
 const ytdl = require("ytdl-core");
 const yts = require("yt-search");
-const { joinVoiceChannel, createAudioResource } = require("@discordjs/voice");
+const { joinVoiceChannel, VoiceConnectionStatus } = require("@discordjs/voice");
 
 const tempoMusicaMaximoString = "1 hora"
 const tempoMusicaMaximoSec = 3600
@@ -33,12 +33,12 @@ module.exports = {
             segundos = songInfo.videoDetails.lengthSeconds
 
             if (segundos > tempoMusicaMaximoSec) return message.reply(`Música muito longa! (Tempo de música máximo: ${tempoMusicaMaximoString})`)
-            
+
             let minutos = Math.floor(segundos / 60)
             let segundosRestantes = segundos % 60
 
             segundosRestantes = segundosRestantes < 10 ? `0${segundosRestantes}` : segundosRestantes
-            
+
             song = {
                 requestedBy: message.author,
                 title: songInfo.videoDetails.title,
@@ -71,7 +71,8 @@ module.exports = {
                 songs: [],
                 volume: 5,
                 player: null,
-                playing: true
+                playing: true,
+                loop: false
             }
 
             queue.set(message.guild.id, queueConstruct)
@@ -87,6 +88,21 @@ module.exports = {
                         guildId: canal.guild.id, // Id servidor
                         adapterCreator: canal.guild.voiceAdapterCreator
                     })
+                connection.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
+                    try {
+                        await Promise.race([
+                            entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
+                            entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
+                        ]);
+                        // Seems to be reconnecting to a new channel - ignore disconnect
+                    } catch (error) {
+                        // Seems to be a real disconnect which SHOULDN'T be recovered from
+                        if(serverQueue){
+                            stopMusic.execute(message, serverQueue, queue, player)
+                        }
+                        connection.destroy();
+                    }
+                })
                 queueConstruct.connection = connection
                 queueConstruct.player = player;
 
@@ -97,7 +113,7 @@ module.exports = {
                     else if (newOne.status == "idle") {
                         console.log("The song finished")
                         if (serverQueue) {
-                            serverQueue.songs.shift(); // Remove a música que acabou de tocar
+                            if(!serverQueue.loop) serverQueue.songs.shift(); // Remove a música que acabou de tocar
                             if (serverQueue.songs.length > 0) {
                                 // Se ainda houver músicas na fila, toque a próxima
                                 song = serverQueue.songs[0]

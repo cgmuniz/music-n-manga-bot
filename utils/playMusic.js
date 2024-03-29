@@ -12,6 +12,6 @@ module.exports = {
 
         serverQueue.player.play(songStream)
 
-        serverQueue.textChannel.send(`Tocando: **${song.title}** ${song.duration}`)
+        if(!serverQueue.loop) serverQueue.textChannel.send(`Tocando: **${song.title}** ${song.duration}`)
     },
 }
