@@ -230,7 +230,7 @@ function executarAcaoH(horario, acao) {
 
   setTimeout(() => {
       acao();
-      setInterval(acao, 12 * 60 * 60 * 1000);
+      setInterval(acao, 24 * 60 * 60 * 1000);
   }, tempoAteProximoHorario);
 }
 
