@@ -154,9 +154,9 @@ diversos:\n\
         args[0] === "subs")
         return runCommand("sub", client, message, args)
 
-      return message.reply("Quer se inscrever ou cancelar inscrição? `[&manga (sub/unsub)]`\n\
-Para ver os mangás nos quais está inscrito: &manga subs\n\
-Para ver a lista de mangás disponíveis: &manga list")
+      return message.reply("Quer se inscrever ou cancelar inscrição? `[&manga (sub/unsub)]`" +
+        "\nPara ver os mangás nos quais está inscrito: &manga subs" +
+        "\nPara ver a lista de mangás disponíveis: &manga list")
     }
     case "lyrics": {
       return runCommandServerQueue("lyrics", client, message, args, serverQueue)
