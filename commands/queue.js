@@ -18,14 +18,14 @@ module.exports = {
 
         let queueString
 
-        if (serverQueue.songs[1]) queueString = serverQueue.songs.slice(1, 10).map((song, i) => {
+        if (serverQueue.songs[1]) queueString = serverQueue.songs.slice(1, 11).map((song, i) => {
             return `${i + 1}) ${song.duration} \`${song.title}\` - <@${song.requestedBy.id}>`
         }).join("\n")
 
         embedMessage = new EmbedBuilder()
             .setDescription(`**Tocando nesse momento**\n\n${musicaAtualmsg}` +
                 (serverQueue.loop ? `\n*Em looping* :repeat:` : "") +
-                (queueString ? `\n\n**Fila**\n\n${queueString}` : "")
+                (queueString ? `\n\n**Fila** (${serverQueue.songs.length - 1} músicas)\n\n${queueString}` : "")
             )
             .setThumbnail(musicaAtual.thumbnail)
 

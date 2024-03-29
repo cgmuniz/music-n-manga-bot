@@ -172,6 +172,9 @@ diversos:\n\
     case "loop": {
       return runCommandServerQueue("loop", client, message, args, serverQueue)
     }
+    case "shuffle": {
+      return runCommandServerQueue("shuffle", client, message, args, serverQueue)
+    }
     case "queue":
     case "fila": {
       return runCommandServerQueue("queue", client, message, args, serverQueue)

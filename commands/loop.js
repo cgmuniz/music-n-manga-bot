@@ -4,8 +4,13 @@ module.exports = {
 			return message.reply("Você deve estar em call para loopar a música!")
 		if (!serverQueue)
 			return message.channel.send("Não há músicas para loopar!")
-		
-		serverQueue.loop = true
-		message.channel.send(`Loop ativado para a música atual: **${serverQueue.songs[0].title}** ${serverQueue.songs[0].duration}`)
+
+		if (!serverQueue.loop) {
+			serverQueue.loop = true
+			message.channel.send(`Loop ativado para a música atual: **${serverQueue.songs[0].title}** ${serverQueue.songs[0].duration}`)
+		} else {
+			serverQueue.loop = false
+			message.channel.send(`Loop desligado`)
+		}
 	},
 }
