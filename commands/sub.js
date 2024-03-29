@@ -1,4 +1,4 @@
-const { StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ActionRowBuilder, ComponentType } = require("discord.js");
+const { StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ActionRowBuilder, ComponentType, EmbedBuilder } = require("discord.js");
 const mangasSubs = require(`../utils/mangasSubs.js`);
 
 let userId
@@ -21,7 +21,9 @@ async function execute({ client, message, args }) {
     let mangas = []
 
     if (args[0] === "sub") mangas = await mangasSubs.getUnsubs(userId)
-    if (args[0] === "unsub") mangas = await mangasSubs.getSubs(userId)
+    else if (args[0] === "unsub") mangas = await mangasSubs.getSubs(userId)
+    else if (args[0] === "list") return await getMangas(message)
+    else if(args[0] === "subs") return await getSubs(message)
 
     if (mangas.length > 0) {
         const selectMenu = new StringSelectMenuBuilder()
@@ -39,9 +41,9 @@ async function execute({ client, message, args }) {
 
         const actionRow = new ActionRowBuilder().addComponents(selectMenu)
 
-        const reply = await message.reply({ 
-            content: args[0] === "sub" ? "Deseja se inscrever em quais mangás?" : "Deseja cancelar inscrição em quais mangás?", 
-            components: [actionRow] 
+        const reply = await message.reply({
+            content: args[0] === "sub" ? "Deseja se inscrever em quais mangás?" : "Deseja cancelar inscrição em quais mangás?",
+            components: [actionRow]
         })
 
         const collector = reply.createMessageComponentCollector({
@@ -78,6 +80,57 @@ async function execute({ client, message, args }) {
         if (args[0] === "sub") message.reply("Você já está inscrito em todos os mangás!")
         if (args[0] === "unsub") message.reply("Você não está inscrito em nenhum mangá!")
     }
+
+    return
+}
+
+async function getSubs(message) {
+
+    let mangas = []
+
+    mangas = await mangasSubs.getSubs(userId)
+
+    if (mangas.length > 0) {
+
+        mangasString = mangas.map((manga) => {
+            return `- *${manga.title}*`
+        }).join("\n")
+
+        embedMessage = new EmbedBuilder()
+            .setDescription(`**Suas inscrições:**\n\n${mangasString}`)
+
+        message.reply({ embeds: [embedMessage] })
+
+        return
+    }
+    else {
+        message.reply("Você não está inscrito em nenhum mangá!")
+    }
+
+    return
+}
+
+async function getMangas(message) {
+
+    let mangas = []
+
+    const mangasJson = await mangasSubs.getMangas()
+
+    for (const mangaKey of Object.keys(mangasJson)) {
+
+        const manga = mangasJson[mangaKey];
+
+        mangas.push(manga)
+    }
+
+    mangasString = mangas.map((manga) => {
+        return `- *${manga.title}*`
+    }).join("\n")
+
+    embedMessage = new EmbedBuilder()
+        .setDescription(`**Mangás disponíveis:**\n\n${mangasString}`)
+
+    message.channel.send({ embeds: [embedMessage] })
 
     return
 }

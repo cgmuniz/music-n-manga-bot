@@ -17,7 +17,7 @@ const dataAtual = new Date();
 const dataLimite = new Date(dataAtual.getTime() - (24 * 60 * 60 * 1000)).toISOString();
 const dataLimiteSemFuso = dataLimite.slice(0, -5);
 
-async function carregarInscricoes() {
+async function carregarMangas() {
     try {
         const existeArquivo = await fs.access(arquivoSubsMangas).then(() => true).catch(() => false);
         // Se o arquivo não existir, crie-o e retorne um objeto vazio
@@ -35,7 +35,7 @@ async function carregarInscricoes() {
     }
 }
 
-carregarInscricoes()
+carregarMangas()
 
 async function getSubs(userId) {
     let mangasSubs = []
@@ -180,5 +180,8 @@ module.exports = {
     },
     getUnsubs: async (userId) => {
         return await getUnsubs(userId)
+    },
+    getMangas: () => {
+        return mangas
     }
 };

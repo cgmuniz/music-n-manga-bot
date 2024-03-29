@@ -148,9 +148,15 @@ diversos:\n\
       return runCommand("pp", client, message, args)
     }
     case "manga": {
-      if(args[0] === "sub" || args[0] === "unsub") return runCommand("sub", client, message, args)
+      if (args[0] === "sub" ||
+        args[0] === "unsub" ||
+        args[0] === "list" ||
+        args[0] === "subs")
+        return runCommand("sub", client, message, args)
 
-      return message.reply("Quer se inscrever ou cancelar inscrição? `[&manga (sub/unsub)]`")
+      return message.reply("Quer se inscrever ou cancelar inscrição? `[&manga (sub/unsub)]`\n\
+      Para ver os mangás nos quais está inscrito: &manga subs\n\
+      Para ver a lista de mangás disponíveis: &manga list")
     }
     case "lyrics": {
       return runCommandServerQueue("lyrics", client, message, args, serverQueue)
@@ -218,7 +224,7 @@ function calcularTempo(horario) {
   horarioAlvo.setHours(horario.hour, horario.minute, horario.second, 0);
 
   if (agora > horarioAlvo) {
-      horarioAlvo.setDate(horarioAlvo.getDate() + 1);
+    horarioAlvo.setDate(horarioAlvo.getDate() + 1);
   }
 
   const tempoAteProximoHorario = horarioAlvo - agora;
@@ -229,8 +235,8 @@ function executarAcaoH(horario, acao) {
   const tempoAteProximoHorario = calcularTempo(horario);
 
   setTimeout(() => {
-      acao();
-      setInterval(acao, 24 * 60 * 60 * 1000);
+    acao();
+    setInterval(acao, 24 * 60 * 60 * 1000);
   }, tempoAteProximoHorario);
 }
 
