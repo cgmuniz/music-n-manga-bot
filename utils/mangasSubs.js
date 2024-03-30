@@ -14,7 +14,7 @@ let mangaData
 let mangas
 
 const dataAtual = new Date();
-const dataLimite = new Date(dataAtual.getTime() - (24 * 60 * 60 * 1000)).toISOString();
+const dataLimite = new Date(dataAtual.getTime() - (12 * 60 * 60 * 1000)).toISOString();
 const dataLimiteSemFuso = dataLimite.slice(0, -5);
 
 async function carregarMangas() {
