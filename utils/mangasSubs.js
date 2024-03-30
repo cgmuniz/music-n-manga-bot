@@ -13,10 +13,6 @@ let mangaCapsData
 let mangaData
 let mangas
 
-const dataAtual = new Date();
-const dataLimite = new Date(dataAtual.getTime() - (12 * 60 * 60 * 1000)).toISOString();
-const dataLimiteSemFuso = dataLimite.slice(0, -5);
-
 async function carregarMangas() {
     try {
         const existeArquivo = await fs.access(arquivoSubsMangas).then(() => true).catch(() => false);
@@ -111,12 +107,15 @@ async function notificarCaps(client) {
             }
         }
     }
-
-    console.log(`Mensagens enviadas às `)
 }
 
 
 async function verificarNovoCapitulo(manga, language) {
+
+    const dataAtual = new Date();
+    const dataLimite = new Date(dataAtual.getTime() - (12 * 60 * 60 * 1000)).toISOString();
+    const dataLimiteSemFuso = dataLimite.slice(0, -5);
+
     try {
         const response = await axios.get(`${url}/manga/${manga}/feed`, { params: { "translatedLanguage[]": language, "createdAtSince": dataLimiteSemFuso } });
 
