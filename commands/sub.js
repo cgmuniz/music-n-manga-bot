@@ -5,11 +5,11 @@ let userId
 let interaction
 
 function enviarSubs(value) {
-    mangasSubs.sub(interaction, userId, value)
+    mangasSubs.sub(userId, value)
 }
 
 function enviarUnsubs(value) {
-    mangasSubs.unsub(interaction, userId, value)
+    mangasSubs.unsub(userId, value)
 }
 
 async function execute({ client, message, args }) {

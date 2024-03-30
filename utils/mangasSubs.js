@@ -72,7 +72,7 @@ async function salvarInscricoes(inscricoes) {
 }
 
 // Função para inscrever um usuário em um mangá específico
-async function inscreverUsuario(message, userId, manga) {
+async function inscreverUsuario(userId, manga) {
     if (!mangas[manga].subs) {
         mangas[manga].subs = [];
     }
@@ -85,7 +85,7 @@ async function inscreverUsuario(message, userId, manga) {
 }
 
 // Função para cancelar a inscrição de um usuário em um mangá específico
-async function cancelarInscricaoUsuario(message, userId, manga) {
+async function cancelarInscricaoUsuario(userId, manga) {
     if (mangas[manga].subs && mangas[manga].subs.includes(userId)) {
         mangas[manga].subs = mangas[manga].subs.filter(id => id !== userId);
         await salvarInscricoes(mangas);
@@ -111,6 +111,8 @@ async function notificarCaps(client) {
             }
         }
     }
+
+    console.log(`Mensagens enviadas às `)
 }
 
 
@@ -169,11 +171,11 @@ module.exports = {
     notificar: async (client) => {
         await notificarCaps(client)
     },
-    sub: async (message, userId, manga) => {
-        await inscreverUsuario(message, userId, manga)
+    sub: async (userId, manga) => {
+        await inscreverUsuario(userId, manga)
     },
-    unsub: async (message, userId, manga) => {
-        await cancelarInscricaoUsuario(message, userId, manga)
+    unsub: async (userId, manga) => {
+        await cancelarInscricaoUsuario(userId, manga)
     },
     getSubs: async (userId) => {
         return await getSubs(userId)
