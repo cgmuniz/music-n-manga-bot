@@ -105,7 +105,10 @@ client.on("messageCreate", async (message) => {
     case "help": {
       message.channel.send(
         `**Comandos do bot:**\n\
-\`\`\`&help (alias: &h &ajuda): mostra os comandos existentes do bot\n\n\
+\`\`\`
+comandos básicos:\n\
+  &help (alias: &h &ajuda): mostra os comandos existentes do bot\n
+  &avatar [@mention]: envia o avatar do usuário\n\n\
 mangás:\n\
   &manga (sub/unsub): mostra uma lista com os mangás que você pode se inscrever\n\n\
 música:\n\
@@ -121,7 +124,6 @@ música:\n\
 vídeos:\n\
   &video: procura um vídeo do YouTube, baixa e envia\n\n\
 diversos:\n\
-  &avatar [@mention]: envia o avatar do usuário\n\
   &riso (alias: &hahaha &rir) [@mention]: risos\n\
   &smt (alias: &kys) [@mention]: keep yourself safe\n\
   &pp: tamain do pene\n\
