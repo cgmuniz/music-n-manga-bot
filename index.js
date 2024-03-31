@@ -110,7 +110,7 @@ comandos básicos:\n\
   &help (alias: &h &ajuda): mostra os comandos existentes do bot\n\
   &avatar [@mention]: envia o avatar do usuário\n\n\
 mangás:\n\
-  &manga (sub/unsub): mostra uma lista com os mangás que você pode se inscrever\n\
+  &manga (sub/unsub): lista os mangás que você pode se inscrever\n\
   &manga subs: mostra os mangás nos quais você tem inscrição\n\
   &manga list: mostra os mangás disponíveis\n\n\
 música:\n\
