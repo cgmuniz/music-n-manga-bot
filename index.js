@@ -107,10 +107,12 @@ client.on("messageCreate", async (message) => {
         `**Comandos do bot:**\n\
 \`\`\`
 comandos básicos:\n\
-  &help (alias: &h &ajuda): mostra os comandos existentes do bot\n
+  &help (alias: &h &ajuda): mostra os comandos existentes do bot\n\
   &avatar [@mention]: envia o avatar do usuário\n\n\
 mangás:\n\
   &manga (sub/unsub): mostra uma lista com os mangás que você pode se inscrever\n\n\
+  &manga subs: mostra os mangás nos quais você tem inscrição
+  &manga list: mostra os mangás disponíveis
 música:\n\
   &lyrics: exibe a letra de uma música\n\
   &play (alias: &p): procura e toca uma música\n\
