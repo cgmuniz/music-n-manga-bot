@@ -219,15 +219,18 @@ const mangasSubs = require("./utils/mangasSubs.js")
 
 function calcularTempo(horario) {
   const agora = new Date();
-  const horarioAlvo = new Date(agora);
+  const options = { timeZone: 'America/Sao_Paulo' };
+  const agoraBrasilia = new Date(agora.toLocaleString('en-US', options));
+  
+  const horarioAlvo = new Date(agoraBrasilia);
 
   horarioAlvo.setHours(horario.hour, horario.minute, horario.second, 0);
 
-  if (agora > horarioAlvo) {
+  if (agoraBrasilia > horarioAlvo) {
     horarioAlvo.setDate(horarioAlvo.getDate() + 1);
   }
 
-  const tempoAteProximoHorario = horarioAlvo - agora;
+  const tempoAteProximoHorario = horarioAlvo - agoraBrasilia;
   return tempoAteProximoHorario;
 }
 
@@ -235,8 +238,8 @@ function executarAcaoH(horario, acao) {
   const tempoAteProximoHorario = calcularTempo(horario);
 
   setTimeout(() => {
-    acao();
     setInterval(acao, 24 * 60 * 60 * 1000);
+    acao();
   }, tempoAteProximoHorario);
 }
 
