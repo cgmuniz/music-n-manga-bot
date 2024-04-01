@@ -91,8 +91,6 @@ module.exports = {
             const songInfo = await ytdl.getInfo(url)
             segundos = songInfo.videoDetails.lengthSeconds
 
-            if (segundos > tempoMusicaMaximoSec) return message.reply(`Música muito longa! (Tempo de música máximo: ${tempoMusicaMaximoString})`)
-
             let minutos = Math.floor(segundos / 60)
             let segundosRestantes = segundos % 60
 
@@ -142,19 +140,15 @@ module.exports = {
 
                     contMus++
 
-                    segundos = songpl.durationSec
-
-                    if (!(segundos > tempoMusicaMaximoSec)) {
-                        song = {
-                            requestedBy: message.author,
-                            title: songpl.title,
-                            url: songpl.url,
-                            thumbnail: songpl.bestThumbnail.url,
-                            duration: `(${songpl.duration})`
-                        }
-
-                        serverQueue.songs.push(song)
+                    song = {
+                        requestedBy: message.author,
+                        title: songpl.title,
+                        url: songpl.url,
+                        thumbnail: songpl.bestThumbnail.url,
+                        duration: `(${songpl.duration})`
                     }
+
+                    serverQueue.songs.push(song)
 
                 }
 
@@ -165,10 +159,6 @@ module.exports = {
         } else {
             const { videos } = await yts(args.join(" "))
             if (!videos.length) return message.reply("Nenhuma música encontrada!")
-
-            segundos = videos[0].duration.seconds
-
-            if (segundos > tempoMusicaMaximoSec) return message.reply(`Música muito longa! (Tempo de música máximo: ${tempoMusicaMaximoString})`)
 
             song = {
                 requestedBy: message.author,
