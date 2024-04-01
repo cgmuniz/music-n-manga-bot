@@ -5,9 +5,6 @@ const yts = require("yt-search");
 const ytpl = require('ytpl');
 const { joinVoiceChannel, VoiceConnectionStatus } = require("@discordjs/voice");
 
-const tempoMusicaMaximoString = "1 hora"
-const tempoMusicaMaximoSec = 3600
-
 const stopMusic = require(`../utils/stopMusic.js`);
 const playMusic = require(`../utils/playMusic.js`);
 
