@@ -17,9 +17,12 @@ It plays music (just YouTube for now), sends lyrics, videos, pp size and you can
 * skip: skips the current song
 * pause: pauses the current song
 * resume: resume the current song
+* remove: remove a position from the queue
 * loop: loops the current song
+* loopqueue: loops the queue
 * shuffle: shuffles the current song
 * queue: shows the current song queue
+* clear: clear the current queue
 * quit: disconnects the bot from the voice call
 #### Videos:
 * video: searches for the video you requested on YouTube, downloads it and sends in chat
@@ -32,7 +35,7 @@ It plays music (just YouTube for now), sends lyrics, videos, pp size and you can
 ## How it works
 ### Mangas
 To make the subscription and notify system it was used a json to keep the mangas that I wanted to be available, in it would be stored the id from the mangas and their subscribers.
-The folder [data](https://github.com/cgmuniz/bot-discordjs/tree/main/data) has a `dummyData.json` as an example from what will be used, you can change the name from the file to `mangas.json` 
+The folder [data](https://github.com/cgmuniz/bot-discordjs/tree/main/data) has a `dummyData.json` as an example for what will be used, you can change the name from the file to `mangas.json` 
 or change the path in [mangasSubs.js](https://github.com/cgmuniz/bot-discordjs/blob/main/utils/mangasSubs.js).
 For the verification of new chapters it was used the [MangaDex API](https://api.mangadex.org/docs/), checking if any chapter was released in the past 12 hours (code will run each 12 hours).
 ### Musics
