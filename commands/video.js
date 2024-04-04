@@ -22,7 +22,12 @@ module.exports = {
             url = videos[0].url
         }
 
-        const info = await ytdl.getInfo(url)
+        let info
+        try {
+            info = await ytdl.getInfo(url)
+        } catch (error) {
+            return message.reply("Erro ao verificar o vídeo")
+        }
         title = info.videoDetails.title
         const sec = parseInt(info.videoDetails.lengthSeconds)
 

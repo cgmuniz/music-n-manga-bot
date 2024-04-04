@@ -42,10 +42,10 @@ async function conectar(message, serverQueue, queue, queueConstruct, player, can
             else if (newOne.status == "idle") {
                 if (serverQueue) {
                     if (!serverQueue.loop) {
-                        if(serverQueue.loopQueue){
+                        if (serverQueue.loopQueue) {
                             serverQueue.songs.push(serverQueue.songs[0])
                         }
-                        else{
+                        else {
                             serverQueue.timeSecQueue -= serverQueue.songs[0].durationSec
                         }
                         serverQueue.songs.shift(); // Remove a música que acabou de tocar
@@ -73,7 +73,7 @@ async function conectar(message, serverQueue, queue, queueConstruct, player, can
     }
 }
 
-async function getQueueConstruct(message, canal){
+async function getQueueConstruct(message, canal) {
     const queueConstruct = {
         textChannel: message.channel,
         voiceChannel: canal,
@@ -86,7 +86,7 @@ async function getQueueConstruct(message, canal){
         loopQueue: false,
         timeSecQueue: 0
     }
-    
+
     return queueConstruct
 }
 
@@ -110,7 +110,14 @@ module.exports = {
 
         if (ytdl.validateURL(args[0])) {
             url = args[0]
-            const songInfo = await ytdl.getInfo(url)
+
+            let songInfo
+            try {
+                info = await ytdl.getInfo(url)
+            } catch (error) {
+                message.reply("Erro ao verificar o vídeo")
+            }
+
             segundos = songInfo.videoDetails.lengthSeconds
 
             let minutos = Math.floor(segundos / 60)
@@ -144,7 +151,7 @@ module.exports = {
 
                 if (!serverQueue) {
                     connect = true
-                    
+
                     queueConstruct = await getQueueConstruct(message, canal)
 
                     queue.set(message.guild.id, queueConstruct)
@@ -198,7 +205,7 @@ module.exports = {
             serverQueue = queue.get(message.guild.id)
 
             serverQueue.songs.push(song)
-            
+
             serverQueue.timeSecQueue += song.durationSec
 
             await conectar(message, serverQueue, queue, queueConstruct, player, canal)
