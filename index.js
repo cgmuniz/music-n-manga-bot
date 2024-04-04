@@ -145,6 +145,7 @@ diversos:\n\
     }
     case "hahaha":
     case "rir":
+     case "risos":
     case "riso": {
       return runCommand("risos", client, message, args)
     }
@@ -184,12 +185,18 @@ diversos:\n\
     case "loop": {
       return runCommandServerQueue("loop", client, message, args, serverQueue)
     }
+    case "loopqueue": {
+      return runCommandServerQueue("loopqueue", client, message, args, serverQueue)
+    }
     case "shuffle": {
       return runCommandServerQueue("shuffle", client, message, args, serverQueue)
     }
     case "queue":
     case "fila": {
       return runCommandServerQueue("queue", client, message, args, serverQueue)
+    }
+    case "clear": {
+      return runCommandServerQueue("clear", client, message, args, serverQueue)
     }
     case "stop":
     case "leave":

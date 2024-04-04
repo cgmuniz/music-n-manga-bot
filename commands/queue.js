@@ -19,17 +19,33 @@ module.exports = {
         let queueString
 
         if (serverQueue.songs[1]) queueString = serverQueue.songs.slice(1, 11).map((song, i) => {
-            return `${i + 1}) ${song.duration} \`${song.title}\` - <@${song.requestedBy.id}>`
+            return `**${i + 1})** ${song.duration} \`${song.title}\` - <@${song.requestedBy.id}>`
         }).join("\n")
+
+        segundosFila = serverQueue.timeSecQueue - serverQueue.songs[0].durationSec
+
+        hours = Math.floor(segundosFila / 3600);
+        minutes = Math.floor((segundosFila - (hours * 3600)) / 60);
+        seconds = segundosFila - (hours * 3600) - (minutes * 60);
+        timeString = hours != 0 ? (hours.toString().padStart(2, '0') + ':') : "" +
+            minutes.toString().padStart(2, '0') + ':' +
+            seconds.toString().padStart(2, '0');
+        
+        let txtMsc = "músicas"
+        if(!serverQueue.songs[2]){
+            txtMsc = "música"
+        }
 
         embedMessage = new EmbedBuilder()
             .setDescription(`**Tocando nesse momento**\n\n${musicaAtualmsg}` +
                 (serverQueue.loop ? `\n*Em looping* :repeat:` : "") +
-                (queueString ? `\n\n**Fila** (${serverQueue.songs.length - 1} músicas)\n\n${queueString}` : "")
+                (queueString ? `\n\n\n**Fila [${timeString}]** (${serverQueue.songs.length - 1} ${txtMsc})` +
+                (serverQueue.loopQueue ? `\n*Queue em looping* :repeat:` : "") +
+                `\n\n${queueString}` : "")
             )
             .setThumbnail(musicaAtual.thumbnail)
 
-        message.channel.send({ embeds: [ embedMessage ] })
+        message.channel.send({ embeds: [embedMessage] })
 
     }
 }

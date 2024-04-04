@@ -41,7 +41,15 @@ async function conectar(message, serverQueue, queue, queueConstruct, player, can
             }
             else if (newOne.status == "idle") {
                 if (serverQueue) {
-                    if (!serverQueue.loop) serverQueue.songs.shift(); // Remove a música que acabou de tocar
+                    if (!serverQueue.loop) {
+                        if(serverQueue.loopQueue){
+                            serverQueue.songs.push(serverQueue.songs[0])
+                        }
+                        else{
+                            serverQueue.timeSecQueue -= serverQueue.songs[0].durationSec
+                        }
+                        serverQueue.songs.shift(); // Remove a música que acabou de tocar
+                    }
                     if (serverQueue.songs.length > 0) {
                         // Se ainda houver músicas na fila, toque a próxima
                         song = serverQueue.songs[0]
@@ -63,6 +71,23 @@ async function conectar(message, serverQueue, queue, queueConstruct, player, can
         message.channel.send("Houve um erro ao conectar")
         throw err
     }
+}
+
+async function getQueueConstruct(message, canal){
+    const queueConstruct = {
+        textChannel: message.channel,
+        voiceChannel: canal,
+        connection: null,
+        songs: [],
+        volume: 5,
+        player: null,
+        playing: true,
+        loop: false,
+        loopQueue: false,
+        timeSecQueue: 0
+    }
+    
+    return queueConstruct
 }
 
 module.exports = {
@@ -98,7 +123,8 @@ module.exports = {
                 title: songInfo.videoDetails.title,
                 url: url,
                 thumbnail: songInfo.videoDetails.thumbnails,
-                duration: `(${minutos}:${segundosRestantes})`
+                duration: `(${minutos}:${segundosRestantes})`,
+                durationSec: segundos
             };
         } else if (args[0].includes("www.youtube.com/playlist?list=")) {
             const id = args[0].replace(/^.*=/i, "")
@@ -118,16 +144,9 @@ module.exports = {
 
                 if (!serverQueue) {
                     connect = true
-                    queueConstruct = {
-                        textChannel: message.channel,
-                        voiceChannel: canal,
-                        connection: null,
-                        songs: [],
-                        volume: 5,
-                        player: null,
-                        playing: true,
-                        loop: false
-                    }
+                    
+                    queueConstruct = await getQueueConstruct(message, canal)
+
                     queue.set(message.guild.id, queueConstruct)
 
                     serverQueue = queue.get(message.guild.id)
@@ -142,10 +161,12 @@ module.exports = {
                         title: songpl.title,
                         url: songpl.url,
                         thumbnail: songpl.bestThumbnail.url,
-                        duration: `(${songpl.duration})`
+                        duration: `(${songpl.duration})`,
+                        durationSec: songpl.durationSec
                     }
 
                     serverQueue.songs.push(song)
+                    serverQueue.timeSecQueue += song.durationSec
 
                 }
 
@@ -162,34 +183,29 @@ module.exports = {
                 title: videos[0].title,
                 url: videos[0].url,
                 thumbnail: videos[0].thumbnail,
-                duration: `(${videos[0].timestamp})`
+                duration: `(${videos[0].timestamp})`,
+                durationSec: videos[0].seconds
             };
         }
 
         if (!serverQueue) {
             let queueConstruct
 
-            queueConstruct = {
-                textChannel: message.channel,
-                voiceChannel: canal,
-                connection: null,
-                songs: [],
-                volume: 5,
-                player: null,
-                playing: true,
-                loop: false
-            }
+            queueConstruct = await getQueueConstruct(message, canal)
 
             queue.set(message.guild.id, queueConstruct)
 
             serverQueue = queue.get(message.guild.id)
 
             serverQueue.songs.push(song)
+            
+            serverQueue.timeSecQueue += song.durationSec
 
             await conectar(message, serverQueue, queue, queueConstruct, player, canal)
 
         } else if (!playlist) {
             serverQueue.songs.push(song)
+            serverQueue.timeSecQueue += song.durationSec
             return message.channel.send(`Adicionada à fila: **${song.title}** ${song.duration}`)
         }
 

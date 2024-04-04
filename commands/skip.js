@@ -18,14 +18,27 @@ module.exports = {
             return message.channel.send("Não há músicas para skippar!")
 
         message.channel.send(`Skippada: **${serverQueue.songs[0].title}** ${serverQueue.songs[0].duration}`)
-        serverQueue.songs.shift(); // Remove a música que acabou de tocar
+
+        if (!serverQueue.loop) {
+            if (serverQueue.loopQueue) {
+                serverQueue.songs.push(serverQueue.songs[0])
+            }
+            else {
+                serverQueue.timeSecQueue -= serverQueue.songs[0].durationSec
+            }
+            serverQueue.songs.shift(); // Remove a música que acabou de tocar
+        }
+        else{
+            serverQueue.loop = false
+        }
+
         if (serverQueue.songs.length > 0) {
             // Se ainda houver músicas na fila, toque a próxima
             song = serverQueue.songs[0]
             playMusic.play(song, serverQueue)
         } else {
             stopMusic.execute(message, serverQueue, queue, player)
-            return;
+            return
         }
     },
 }
