@@ -8,7 +8,7 @@ module.exports = {
         if (!serverQueue.songs[1])
             return message.channel.send("Não há músicas na fila de espera!")
 
-        message.channel.send(`Fila limpada!`)
+        message.channel.send(`Fila limpa!`)
 
         auxSong = serverQueue.songs[0]
         serverQueue.songs = []

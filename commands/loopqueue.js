@@ -6,6 +6,15 @@ module.exports = {
 			return message.channel.send("Não há músicas para loopar!")
 
 		if (!serverQueue.loopQueue) {
+            if(!serverQueue.songs[1]){
+                if(!serverQueue.loop){
+                    serverQueue.loop = true
+                    return message.channel.send(`Apenas uma música na fila, loop ativado para a música atual.`)
+                }
+
+                return message.channel.send(`Coloque músicas na fila para ativar o loop da queue.`)
+            }
+
 			serverQueue.loopQueue = true
 			message.channel.send(`Loop ativado para a fila`)
 		} else {

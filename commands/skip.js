@@ -26,7 +26,7 @@ module.exports = {
             else {
                 serverQueue.timeSecQueue -= serverQueue.songs[0].durationSec
             }
-            serverQueue.songs.shift(); // Remove a música que acabou de tocar
+            serverQueue.songs.shift(); // Remove a música que está tocando
         }
         else{
             serverQueue.loop = false

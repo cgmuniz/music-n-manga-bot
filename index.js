@@ -119,6 +119,7 @@ música:\n\
   &skip: pula uma música\n\
   &pause: pausa uma música\n\
   &resume: retoma uma música\n\
+  &remove: remove uma posição da fila\n\
   &loop: coloca a música atual em looping\n\
   &loopqueue: coloca a queue em looping\n\
   &shuffle: embaralha a fila de músicas\n\
@@ -183,6 +184,10 @@ diversos:\n\
     }
     case "resume": {
       return runCommandServerQueue("resume", client, message, args, serverQueue)
+    }
+    case "remove": {
+      if(isNaN(args[0])) return message.reply("Para remover uma posição da fila: &remove [posição]\nMúsica atual tem posição 0")
+      return runCommandServerQueue("remove", client, message, args, serverQueue, queue, player)
     }
     case "loop": {
       return runCommandServerQueue("loop", client, message, args, serverQueue)
