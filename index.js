@@ -120,8 +120,10 @@ música:\n\
   &pause: pausa uma música\n\
   &resume: retoma uma música\n\
   &loop: coloca a música atual em looping\n\
+  &loopqueue: coloca a queue em looping\n\
   &shuffle: embaralha a fila de músicas\n\
   &queue (alias: &fila): mostra a fila atual de músicas\n\
+  &clear: limpa a queue atual\n\
   &quit (alias: &exit): desconecta o bot da call\n\n\
 vídeos:\n\
   &video: procura um vídeo do YouTube, baixa e envia\n\n\
