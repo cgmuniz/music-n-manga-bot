@@ -117,12 +117,12 @@ async function verificarNovoCapitulo(manga, language) {
     const dataLimiteSemFuso = dataLimite.slice(0, -5);
 
     try {
-        const response = await axios.get(`${url}/manga/${manga}/feed`, { params: { "translatedLanguage[]": language, "createdAtSince": dataLimiteSemFuso } });
+        const response = await axios.get(`${url}/manga/${manga}/feed`, { params: { "translatedLanguage[]": language, "createdAtSince": dataLimiteSemFuso }, timeout: 10000 });
 
         while (response.status === 503) {
             console.log("O servidor está indisponível. Tentando novamente em 10 minutos...");
             await new Promise(resolve => setTimeout(resolve, 600000));
-            response = await axios.get(`${url}/manga/${manga}/feed`, { params: { "translatedLanguage[]": language, "createdAtSince": dataLimiteSemFuso } });
+            response = await axios.get(`${url}/manga/${manga}/feed`, { params: { "translatedLanguage[]": language, "createdAtSince": dataLimiteSemFuso }, timeout: 10000 });
         }
 
         if (response.status === 200) {
