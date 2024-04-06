@@ -33,8 +33,7 @@ module.exports = {
             }
         } catch (error) {
             console.log(error)
-            message.reply("Houve um erro ao procurar a música :(")
-            throw err
+            return message.reply("Houve um erro ao procurar a música :(")
         }
 
         if (lyrics.length > 4096) {
