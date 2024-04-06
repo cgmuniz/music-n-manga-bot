@@ -35,6 +35,8 @@ async function conectar(message, serverQueue, queue, queueConstruct, player, can
         queueConstruct.connection = connection
         queueConstruct.player = player;
 
+        let timer
+
         player.addListener("stateChange", (oldOne, newOne) => {
             if (oldOne.status == "idle") {
 
@@ -55,12 +57,25 @@ async function conectar(message, serverQueue, queue, queueConstruct, player, can
                         song = serverQueue.songs[0]
                         playMusic.play(song, serverQueue)
                     } else {
-                        stopMusic.execute(message, serverQueue, queue, player)
-                        return
+                        message.channel.send("Sem mais músicas na fila")
+
+                        timer = setTimeout(() => {
+                            // Se o player ainda estiver em estado "idle" após 3 minutos, parar a música
+                            if (newOne.status === "idle") {
+                                if (serverQueue) {
+                                    message.channel.send("3 minutos sem música, saindo...")
+                                    stopMusic.execute(message, serverQueue, queue, player);
+                                    return
+                                }
+                            }
+                        }, 3 * 60 * 1000)
                     }
                 } else {
                     console.log("Não há fila de reprodução para o servidor");
                 }
+            }
+            else{
+                clearTimeout(timer);
             }
         })
 
@@ -84,7 +99,8 @@ async function getQueueConstruct(message, canal) {
         playing: true,
         loop: false,
         loopQueue: false,
-        timeSecQueue: 0
+        timeSecQueue: 0,
+        botMessage: null
     }
 
     return queueConstruct
@@ -108,6 +124,10 @@ module.exports = {
 
         if (!args[0]) return message.reply("Diga qual música deseja!")
 
+        let replyMessage
+
+        await message.channel.send("Procurando...").then(msg => replyMessage = msg)
+
         if (ytdl.validateURL(args[0])) {
             url = args[0]
 
@@ -115,6 +135,7 @@ module.exports = {
             try {
                 info = await ytdl.getInfo(url)
             } catch (error) {
+                replyMessage.delete(10000)
                 message.reply("Erro ao verificar o vídeo")
             }
 
@@ -139,6 +160,8 @@ module.exports = {
             try {
                 playlist = await ytpl(id)
             } catch (error) {
+                replyMessage.delete(10000)
+                message.reply("Erro ao verificar o vídeo")
                 console.log(error)
             }
 
@@ -208,11 +231,15 @@ module.exports = {
 
             serverQueue.timeSecQueue += song.durationSec
 
+            serverQueue.botMessage = replyMessage
+
             await conectar(message, serverQueue, queue, queueConstruct, player, canal)
 
         } else if (!playlist) {
             serverQueue.songs.push(song)
             serverQueue.timeSecQueue += song.durationSec
+            replyMessage.delete(10000)
+            if(serverQueue.songs.length === 1) return playMusic.play(serverQueue.songs[0], serverQueue)
             return message.channel.send(`Adicionada à fila: **${song.title}** ${song.duration}`)
         }
 

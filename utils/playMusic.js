@@ -12,6 +12,8 @@ module.exports = {
 
         serverQueue.player.play(songStream)
 
-        if(!serverQueue.loop) serverQueue.textChannel.send(`Tocando: **${song.title}** ${song.duration}`)
+        if(serverQueue.botMessage) await serverQueue.botMessage.delete(10000)
+
+        if(!serverQueue.loop) serverQueue.textChannel.send(`Tocando: **${song.title}** ${song.duration}`).then(msg => serverQueue.botMessage = msg)
     },
 }

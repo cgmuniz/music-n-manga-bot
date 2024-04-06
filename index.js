@@ -136,45 +136,15 @@ diversos:\n\
       )
       return
     }
-    case "avatar": {
-      return runCommand("avatar", client, message, args)
-    }
-    case "kys":
-    case "smt": {
-      return runCommand("kys", client, message, args)
-    }
-    case "poggers": {
-      return runCommand("poggers", client, message, args)
-    }
-    case "hahaha":
-    case "rir":
-     case "risos":
-    case "riso": {
-      return runCommand("risos", client, message, args)
-    }
-    case "pp": {
-      return runCommand("pp", client, message, args)
-    }
-    case "manga": {
-      if (args[0] === "sub" ||
-        args[0] === "unsub" ||
-        args[0] === "list" ||
-        args[0] === "subs")
-        return runCommand("sub", client, message, args)
-
-      return message.reply("Quer se inscrever ou cancelar inscrição? `[&manga (sub/unsub)]`" +
-        "\nPara ver os mangás nos quais está inscrito: `&manga subs`" +
-        "\nPara ver a lista de mangás disponíveis: `&manga list`")
+    case "play":
+    case "p": {
+      return runCommandServerQueue("play", client, message, args, serverQueue, queue, player)
     }
     case "lyrics": {
       return runCommandServerQueue("lyrics", client, message, args, serverQueue)
     }
     case "video": {
       return runCommand("video", client, message, args)
-    }
-    case "play":
-    case "p": {
-      return runCommandServerQueue("play", client, message, args, serverQueue, queue, player)
     }
     case "skip": {
       return runCommandServerQueue("skip", client, message, args, serverQueue, queue, player)
@@ -210,6 +180,36 @@ diversos:\n\
     case "quit":
     case "exit": {
       return runCommandServerQueue("exit", client, message, args, serverQueue, queue, player)
+    }
+    case "avatar": {
+      return runCommand("avatar", client, message, args)
+    }
+    case "kys":
+    case "smt": {
+      return runCommand("kys", client, message, args)
+    }
+    case "poggers": {
+      return runCommand("poggers", client, message, args)
+    }
+    case "hahaha":
+    case "rir":
+     case "risos":
+    case "riso": {
+      return runCommand("risos", client, message, args)
+    }
+    case "pp": {
+      return runCommand("pp", client, message, args)
+    }
+    case "manga": {
+      if (args[0] === "sub" ||
+        args[0] === "unsub" ||
+        args[0] === "list" ||
+        args[0] === "subs")
+        return runCommand("sub", client, message, args)
+
+      return message.reply("Quer se inscrever ou cancelar inscrição? `[&manga (sub/unsub)]`" +
+        "\nPara ver os mangás nos quais está inscrito: `&manga subs`" +
+        "\nPara ver a lista de mangás disponíveis: `&manga list`")
     }
   }
 
