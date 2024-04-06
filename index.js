@@ -7,7 +7,7 @@ const { YouTubeExtractor } = require("@discord-player/extractor")
 
 const queue = new Map();
 
-const { createAudioPlayer } = require("@discordjs/voice")
+const { createAudioPlayer, AudioPlayerStatus } = require("@discordjs/voice")
 
 const fs = require("node:fs")
 const path = require("node:path")

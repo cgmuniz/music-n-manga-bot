@@ -1,6 +1,8 @@
 const { SlashCommandBuilder } = require("@discordjs/builders")
 const { EmbedBuilder } = require("discord.js")
 
+const timestampCalc = require("../utils/timestampCalc.js")
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("queue")
@@ -14,7 +16,10 @@ module.exports = {
 
         const musicaAtual = serverQueue.songs[0]
 
-        const musicaAtualmsg = `${musicaAtual.duration} \`${musicaAtual.title}\` - <@${musicaAtual.requestedBy.id}>`
+        timeAtual = timestampCalc.calcular(serverQueue.currentSec)
+        timeMusic = timestampCalc.calcular(musicaAtual.durationSec)
+
+        const musicaAtualmsg = `${musicaAtual.duration} \`${musicaAtual.title}\` - <@${musicaAtual.requestedBy.id}>\n*[${timeAtual}/${timeMusic}]*`
 
         let queueString
 
@@ -24,12 +29,7 @@ module.exports = {
 
         segundosFila = serverQueue.timeSecQueue - serverQueue.songs[0].durationSec
 
-        hours = Math.floor(segundosFila / 3600);
-        minutes = Math.floor((segundosFila - (hours * 3600)) / 60);
-        seconds = segundosFila - (hours * 3600) - (minutes * 60);
-        timeString = hours != 0 ? (hours.toString().padStart(2, '0') + ':') : "" +
-            minutes.toString().padStart(2, '0') + ':' +
-            seconds.toString().padStart(2, '0');
+        timeString = timestampCalc.calcular(segundosFila)
         
         let txtMsc = "músicas"
         if(!serverQueue.songs[2]){

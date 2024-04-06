@@ -3,10 +3,12 @@ const { SlashCommandBuilder } = require("@discordjs/builders")
 const ytdl = require("ytdl-core");
 const yts = require("yt-search");
 const ytpl = require('ytpl');
-const { joinVoiceChannel, VoiceConnectionStatus } = require("@discordjs/voice");
+const { joinVoiceChannel, VoiceConnectionStatus, entersState } = require("@discordjs/voice");
 
 const stopMusic = require(`../utils/stopMusic.js`);
 const playMusic = require(`../utils/playMusic.js`);
+
+const timestampCalc = require("../utils/timestampCalc.js")
 
 async function conectar(message, serverQueue, queue, queueConstruct, player, canal) {
     try {
@@ -36,12 +38,26 @@ async function conectar(message, serverQueue, queue, queueConstruct, player, can
         queueConstruct.player = player;
 
         let timer
+        let currentCount
 
         player.addListener("stateChange", (oldOne, newOne) => {
             if (oldOne.status == "idle") {
 
             }
+            else if (newOne.status == "playing") {
+                currentCount = setInterval(() => {
+                    if (newOne.status === "playing") {
+                        if (serverQueue) {
+                            serverQueue.currentSec += 1
+                            return
+                        }
+                    }
+                }, 1000)
+            }
             else if (newOne.status == "idle") {
+                clearInterval(currentCount)
+                serverQueue.currentSec = 0
+
                 if (serverQueue) {
                     if (!serverQueue.loop) {
                         if (serverQueue.loopQueue) {
@@ -75,6 +91,7 @@ async function conectar(message, serverQueue, queue, queueConstruct, player, can
                 }
             }
             else{
+                clearInterval(currentCount);
                 clearTimeout(timer);
             }
         })
@@ -100,6 +117,7 @@ async function getQueueConstruct(message, canal) {
         loop: false,
         loopQueue: false,
         timeSecQueue: 0,
+        currentSec: 0,
         botMessage: null
     }
 
@@ -133,25 +151,21 @@ module.exports = {
 
             let songInfo
             try {
-                info = await ytdl.getInfo(url)
+                songInfo = await ytdl.getInfo(url)
             } catch (error) {
                 replyMessage.delete(10000)
                 message.reply("Erro ao verificar o vídeo")
             }
 
             segundos = songInfo.videoDetails.lengthSeconds
-
-            let minutos = Math.floor(segundos / 60)
-            let segundosRestantes = segundos % 60
-
-            segundosRestantes = segundosRestantes < 10 ? `0${segundosRestantes}` : segundosRestantes
+            timeString = timestampCalc.calcular(segundos)
 
             song = {
                 requestedBy: message.author,
                 title: songInfo.videoDetails.title,
                 url: url,
                 thumbnail: songInfo.videoDetails.thumbnails,
-                duration: `(${minutos}:${segundosRestantes})`,
+                duration: `(${timeString})`,
                 durationSec: segundos
             };
         } else if (args[0].includes("www.youtube.com/playlist?list=")) {
