@@ -1,20 +1,15 @@
 const { createAudioResource } = require("@discordjs/voice")
 
-const ytdl = require("ytdl-core")
+const { stream } = require("play-dl")
 
 module.exports = {
     play: async (song, serverQueue) => {
-        const stream = await ytdl(song.url, {
-            filter: 'audioonly',
-            fmt: "mp3",
-            highWaterMark: 1 << 62,
-            liveBuffer: 1 << 62,
-            dlChunkSize: 0, //disabling chunking is recommended in discord bot
-            bitrate: 128,
-            quality: "lowestaudio",
-        })
 
-        const songStream = await createAudioResource(stream)
+        const playStream = await stream(song.url)
+
+        if (!stream) return;
+
+        const songStream = await createAudioResource(playStream.stream, { metadata: this, inputType: playStream.type, inlineVolume: true })
 
         serverQueue.connection.subscribe(serverQueue.player)
 

@@ -45,6 +45,7 @@ async function conectar(message, serverQueue, queue, queueConstruct, player, can
 
             }
             else if (newOne.status == "playing") {
+                clearTimeout(timer);
                 currentCount = setInterval(() => {
                     if (newOne.status === "playing") {
                         if (serverQueue) {

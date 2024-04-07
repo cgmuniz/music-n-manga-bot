@@ -19,6 +19,7 @@
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.5",
     "genius-lyrics": "^4.4.6",
+    "play-dl": "^1.9.7",
     "yt-search": "^2.10.4",
     "ytdl-core": "^4.11.5",
     "ytpl": "^2.3.0"

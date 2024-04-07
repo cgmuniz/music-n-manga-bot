@@ -19,7 +19,7 @@ module.exports = {
         timeAtual = timestampCalc.calcular(serverQueue.currentSec)
         timeMusic = timestampCalc.calcular(musicaAtual.durationSec)
 
-        const musicaAtualmsg = `${musicaAtual.duration} \`${musicaAtual.title}\` - <@${musicaAtual.requestedBy.id}>\n*[${timeAtual}/${timeMusic}]*`
+        const musicaAtualmsg = `[${timeAtual}/${timeMusic}] \`${musicaAtual.title}\` - <@${musicaAtual.requestedBy.id}>`
 
         let queueString
 

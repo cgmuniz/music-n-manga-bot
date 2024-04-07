@@ -140,6 +140,15 @@ diversos:\n\
     case "p": {
       return runCommandServerQueue("play", client, message, args, serverQueue, queue, player)
     }
+    case "forward": {
+      if(isNaN(args[0])) return message.reply("Para avançar na track: &forward [segundos]")
+      return runCommandServerQueue("fbward", client, message, args, serverQueue)
+    }
+    case "backward": {
+      if(isNaN(args[0])) return message.reply("Para retroceder na track: &backward [segundos]")
+      args[0] = parseInt(args[0] * -1)
+      return runCommandServerQueue("fbward", client, message, args, serverQueue)
+    }
     case "lyrics": {
       return runCommandServerQueue("lyrics", client, message, args, serverQueue)
     }
