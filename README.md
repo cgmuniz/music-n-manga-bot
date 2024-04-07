@@ -1,7 +1,7 @@
 # JS Discord Bot
 A discord bot made by me just for fun
 
-It plays music (just YouTube for now), sends lyrics, videos, pp size and you can subscribe to mangas from MangaDex to be notified when a chapter is released
+It plays music (just YouTube for now), sends lyrics, videos and you can subscribe to mangas from MangaDex to be notified when a chapter is released
 
 ## Commands (prefix: &)
 #### Basic commands:
@@ -18,6 +18,8 @@ It plays music (just YouTube for now), sends lyrics, videos, pp size and you can
 * pause: pauses the current song
 * resume: resume the current song
 * remove: remove a position from the queue
+* forward: forwards the track
+* backward: backwards the track
 * loop: loops the current song
 * loopqueue: loops the queue
 * shuffle: shuffles the current song

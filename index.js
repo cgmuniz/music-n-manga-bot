@@ -120,6 +120,8 @@ música:\n\
   &pause: pausa uma música\n\
   &resume: retoma uma música\n\
   &remove: remove uma posição da fila\n\
+  &forward: avança o tempo na track\n\
+  &backward: retrocede o tempo na track\n\
   &loop: coloca a música atual em looping\n\
   &loopqueue: coloca a queue em looping\n\
   &shuffle: embaralha a fila de músicas\n\
