@@ -222,6 +222,16 @@ diversos:\n\
         "\nPara ver os mangás nos quais está inscrito: `&manga subs`" +
         "\nPara ver a lista de mangás disponíveis: `&manga list`")
     }
+    case "updates": {
+      message.channel.send(
+        `**Comandos do bot:**\n\
+\`\`\`
+música:\n\
+  &forward: avança o tempo na track\n\
+  &backward: retrocede o tempo na track\`\`\``
+      )
+      return
+    }
   }
 
 });
