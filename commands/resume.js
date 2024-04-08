@@ -10,7 +10,13 @@ module.exports = {
         if (!serverQueue)
             return message.channel.send("Não há músicas para retomar!")
 
-        serverQueue.player.unpause()
-        message.channel.send(`Tocando: **${serverQueue.songs[0].title}** ${serverQueue.songs[0].duration}`)
+        if(!serverQueue.playing){
+            serverQueue.playing = true
+            serverQueue.player.unpause()
+            return message.channel.send(`Tocando: **${serverQueue.songs[0].title}** ${serverQueue.songs[0].duration}`)
+        }
+        else{
+            return message.reply(`A música já está tocando`)
+        }
     },
 }

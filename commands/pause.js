@@ -9,8 +9,14 @@ module.exports = {
 			return message.reply("Você deve estar em call para pausar a música!")
 		if (!serverQueue)
 			return message.channel.send("Não há músicas para pausar!")
-		
-		serverQueue.player.pause()
-		message.channel.send(`Pausada: **${serverQueue.songs[0].title}** ${serverQueue.songs[0].duration}`)
+
+		if (serverQueue.playing) {
+			serverQueue.playing = false
+			serverQueue.player.pause()
+			return message.channel.send(`Pausada: **${serverQueue.songs[0].title}** ${serverQueue.songs[0].duration}`)
+		}
+		else{
+            return message.reply(`A música já está pausada`)
+        }
 	},
 }

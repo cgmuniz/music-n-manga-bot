@@ -20,6 +20,7 @@ module.exports = {
             serverQueue.botMessage = null
         }
         
+        serverQueue.playing = true
         serverQueue.textChannel.send(`Tocando: **${song.title}** ${song.duration}`).then(msg => serverQueue.botMessage = msg)
     },
 }

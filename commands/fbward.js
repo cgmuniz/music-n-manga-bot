@@ -35,6 +35,8 @@ module.exports = {
 
         serverQueue.player.play(songStream)
 
+        serverQueue.playing = true
+
         message.react("👍")
     }
 }
