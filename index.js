@@ -120,7 +120,7 @@ música:\n\
   &skipto [index]: pula para uma música na fila\n\
   &pause: pausa uma música\n\
   &resume: retoma uma música\n\
-  &remove: remove uma posição da fila\n\
+  &remove [index]: remove uma posição da fila\n\
   &forward [index]: avança o tempo na track\n\
   &backward [index]: retrocede o tempo na track\n\
   &loop: coloca a música atual em looping\n\

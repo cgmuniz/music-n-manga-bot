@@ -15,11 +15,12 @@ It plays music (just YouTube for now), sends lyrics, videos and you can subscrib
 * lyrics: searches for the song you requested and sends the lyrics in chat
 * play: searches and play the song
 * skip: skips the current song
+* &skipto [index]: skips to a song from the queue
 * pause: pauses the current song
 * resume: resume the current song
-* remove: remove a position from the queue
-* forward: forwards the track
-* backward: backwards the track
+* remove [index]: remove a position from the queue
+* forward [index]: forwards the track
+* backward [index]: backwards the track
 * loop: loops the current song
 * loopqueue: loops the queue
 * shuffle: shuffles the current song
