@@ -107,6 +107,8 @@ async function notificarCaps(client) {
             }
         }
     }
+
+    console.log(`Notificações enviadas às: ${new Date()}`)
 }
 
 

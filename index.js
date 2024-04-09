@@ -282,8 +282,8 @@ function executarAcaoH(horario, acao) {
   }, tempoAteProximoHorario);
 }
 
-const horario1 = { hour: 0, minute: 0, second: 0 }
-const horario2 = { hour: 12, minute: 0, second: 0 };
+const horario1 = { hour: 6, minute: 0, second: 0 }
+const horario2 = { hour: 18, minute: 0, second: 0 };
 
 function acao() {
   mangasSubs.notificar(client);
