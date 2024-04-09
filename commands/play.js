@@ -165,9 +165,9 @@ module.exports = {
                 requestedBy: message.author,
                 title: songInfo.videoDetails.title,
                 url: url,
-                thumbnail: songInfo.videoDetails.thumbnails,
+                thumbnail: songInfo.videoDetails.thumbnails[0].url,
                 duration: `(${timeString})`,
-                durationSec: segundos
+                durationSec: parseInt(segundos)
             };
         } else if (args[0].includes("www.youtube.com/playlist?list=")) {
             const id = args[0].replace(/^.*=/i, "")

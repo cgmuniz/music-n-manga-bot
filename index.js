@@ -97,7 +97,7 @@ client.on("messageCreate", async (message) => {
 
   canal = message.member.voice.channel;
 
-  const args = message.content.split(" ").slice(1)
+  const args = message.content.replace(/\s+/g, " ").split(" ").slice(1)
 
   switch (commandName) {
     case "ajuda":
@@ -117,11 +117,12 @@ música:\n\
   &lyrics: exibe a letra de uma música\n\
   &play (alias: &p): procura e toca uma música\n\
   &skip: pula uma música\n\
+  &skipto [index]: pula para uma música na fila\n\
   &pause: pausa uma música\n\
   &resume: retoma uma música\n\
   &remove: remove uma posição da fila\n\
-  &forward: avança o tempo na track\n\
-  &backward: retrocede o tempo na track\n\
+  &forward [index]: avança o tempo na track\n\
+  &backward [index]: retrocede o tempo na track\n\
   &loop: coloca a música atual em looping\n\
   &loopqueue: coloca a queue em looping\n\
   &shuffle: embaralha a fila de músicas\n\
@@ -144,10 +145,12 @@ diversos:\n\
     }
     case "forward": {
       if(isNaN(args[0])) return message.reply("Para avançar na track: &forward [segundos]")
+      if(parseInt(args[0]) < 0)  return message.reply("Insira um valor válido")
       return runCommandServerQueue("fbward", client, message, args, serverQueue)
     }
     case "backward": {
       if(isNaN(args[0])) return message.reply("Para retroceder na track: &backward [segundos]")
+      if(parseInt(args[0]) < 0)  return message.reply("Insira um valor válido")
       args[0] = parseInt(args[0] * -1)
       return runCommandServerQueue("fbward", client, message, args, serverQueue)
     }
@@ -159,6 +162,11 @@ diversos:\n\
     }
     case "skip": {
       return runCommandServerQueue("skip", client, message, args, serverQueue, queue, player)
+    }
+    case "skipto": {
+      if(isNaN(args[0])) return message.reply("Para avançar a uma track: &skipto [index]")
+      if(parseInt(args[0]) <= 0)  return message.reply("Insira um valor válido")
+      return runCommandServerQueue("skip", client, message, args, serverQueue, queue, player, 1)
     }
     case "pause": {
       return runCommandServerQueue("pause", client, message, args, serverQueue)
@@ -228,7 +236,8 @@ diversos:\n\
 \`\`\`
 música:\n\
   &forward: avança o tempo na track\n\
-  &backward: retrocede o tempo na track\`\`\``
+  &backward: retrocede o tempo na track\n\
+  &skipto [index]: pula para uma música na fila\`\`\``
       )
       return
     }
@@ -245,10 +254,10 @@ function runCommand(commandName, client, message, args) {
   }
 }
 
-function runCommandServerQueue(commandName, client, message, args, serverQueue, queue, player) {
+function runCommandServerQueue(commandName, client, message, args, serverQueue, queue, player, arg) {
   try {
     let fileCommand = require(`./commands/${commandName}.js`)
-    fileCommand.execute({ client, message, args, serverQueue, queue, player })
+    fileCommand.execute({ client, message, args, serverQueue, queue, player,arg })
   } catch (error) {
     console.log(error)
   }
