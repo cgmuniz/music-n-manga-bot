@@ -60,15 +60,18 @@ async function conectar(message, serverQueue, queue, queueConstruct, player, can
                 serverQueue.currentSec = 0
 
                 if (serverQueue) {
-                    if (!serverQueue.loop) {
-                        if (serverQueue.loopQueue) {
-                            serverQueue.songs.push(serverQueue.songs[0])
+                    if(serverQueue.songs.length !== 0){
+                        if (!serverQueue.loop) {
+                            if (serverQueue.loopQueue) {
+                                serverQueue.songs.push(serverQueue.songs[0])
+                            }
+                            else {
+                                serverQueue.timeSecQueue -= serverQueue.songs[0].durationSec
+                            }
+                            serverQueue.songs.shift(); // Remove a música que acabou de tocar
                         }
-                        else {
-                            serverQueue.timeSecQueue -= serverQueue.songs[0].durationSec
-                        }
-                        serverQueue.songs.shift(); // Remove a música que acabou de tocar
                     }
+
                     if (serverQueue.songs.length > 0) {
                         // Se ainda houver músicas na fila, toque a próxima
                         song = serverQueue.songs[0]

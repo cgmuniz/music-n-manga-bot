@@ -13,6 +13,8 @@ module.exports = {
             return message.reply("Você deve estar em call para ver a fila!")
         if (!serverQueue)
             return message.channel.send("Não há músicas na fila!")
+        if (serverQueue.songs.length === 0)
+            return message.channel.send("Não há músicas na fila!")
 
         const musicaAtual = serverQueue.songs[0]
 

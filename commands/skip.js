@@ -48,7 +48,7 @@ module.exports = {
         else {
             serverQueue.loop = false
         }
-        
+
         serverQueue.currentSec = 0
 
         message.react("👍")
@@ -58,7 +58,7 @@ module.exports = {
             song = serverQueue.songs[0]
             playMusic.play(song, serverQueue)
         } else {
-            stopMusic.execute(message, serverQueue, queue, player)
+            serverQueue.player.stop()
             return
         }
     },
