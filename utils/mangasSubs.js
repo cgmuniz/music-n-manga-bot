@@ -164,6 +164,16 @@ async function verificarNovoCapitulo(manga, language) {
         }
     } catch (error) {
         console.error(`Ocorreu um erro ao verificar o novo capítulo de ${manga}:`, error);
+
+        const mensagemErro = `Ocorreu um erro ao verificar o novo capítulo de ${manga}:\n${error}\n`;
+        // Escrever o erro em um arquivo de texto
+        fs.appendFile('error.log', mensagemErro, (err) => {
+            if (err) {
+                console.error('Erro ao escrever o erro no arquivo:', err);
+            } else {
+                console.log('Erro registrado em erros.txt');
+            }
+        });
     }
     return
 }
