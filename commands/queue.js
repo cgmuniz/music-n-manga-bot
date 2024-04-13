@@ -23,31 +23,75 @@ module.exports = {
 
         const musicaAtualmsg = `[${timeAtual}/${timeMusic}] \`${musicaAtual.title}\` - <@${musicaAtual.requestedBy.id}>`
 
-        let queueString
+        let pages = []
+        let current = 0
 
-        if (serverQueue.songs[1]) queueString = serverQueue.songs.slice(1, 11).map((song, i) => {
-            return `**${i + 1})** ${song.duration} \`${song.title}\` - <@${song.requestedBy.id}>`
-        }).join("\n")
+        for (i = 0; i < (serverQueue.songs.length - 1) / 10; i++) {
+            let queueString
 
-        segundosFila = serverQueue.timeSecQueue - serverQueue.songs[0].durationSec
+            if (serverQueue.songs[1]) queueString = serverQueue.songs.slice(1 + (10 * i), 11 + (10 * i)).map((song, j) => {
+                return `**${j + 1 + (10 * i)})** ${song.duration} \`${song.title}\` - <@${song.requestedBy.id}>`
+            }).join("\n")
 
-        timeString = timestampCalc.calcular(segundosFila)
-        
+            pages.push(queueString)
+        }
+
+        const segundosFila = await serverQueue.timeSecQueue - serverQueue.songs[0].durationSec
+
+        const timeString = timestampCalc.calcular(segundosFila)
+
         let txtMsc = "músicas"
-        if(!serverQueue.songs[2]){
+        if (!serverQueue.songs[2]) {
             txtMsc = "música"
         }
 
         embedMessage = new EmbedBuilder()
             .setDescription(`**Tocando nesse momento**\n\n${musicaAtualmsg}` +
                 (serverQueue.loop ? `\n*Em looping* :repeat:` : "") +
-                (queueString ? `\n\n\n**Fila [${timeString}]** (${serverQueue.songs.length - 1} ${txtMsc})` +
-                (serverQueue.loopQueue ? `\n*Queue em looping* :repeat:` : "") +
-                `\n\n${queueString}` : "")
+                (pages.length > 0 ? `\n\n\n**Fila [${timeString}]** (${serverQueue.songs.length - 1} ${txtMsc})` +
+                    (serverQueue.loopQueue ? `\n*Queue em looping* :repeat:` : "") +
+                    (pages.length > 1 ? `\n\n- Página ${current + 1}/${pages.length}` : "") +
+                    `\n${pages[current]}` : "")
             )
             .setThumbnail(musicaAtual.thumbnail)
 
-        message.channel.send({ embeds: [embedMessage] })
+        const Msg = await message.channel.send({ embeds: [embedMessage] })
 
+        if (pages.length > 1) {
+            await Msg.react('⬅')
+            await Msg.react('➡')
+
+            const collectorFilter = (reaction, user) => {
+                return (reaction.emoji.name === '⬅' || reaction.emoji.name === '➡') && user.id != client.user.id
+            }
+
+            const collector = await Msg.createReactionCollector({ filter: collectorFilter, time: 90_000 })
+
+            collector.on('collect', (reaction) => {
+                reaction.users.remove(reaction.users.cache.get(message.author.id))
+
+                if (reaction.emoji.name === '⬅') {
+                    current--
+                    if (current < 0) current = pages.length - 1
+                }
+                else if (reaction.emoji.name === '➡') {
+                    current++
+                    if (current > pages.length - 1) current = 0
+                }
+                else return
+
+                const updatedEmbedMessage = new EmbedBuilder()
+                    .setDescription(`**Tocando nesse momento**\n\n${musicaAtualmsg}` +
+                        (serverQueue.loop ? `\n*Em looping* :repeat:` : "") +
+                        (pages.length > 0 ? `\n\n\n**Fila [${timeString}]** (${serverQueue.songs.length - 1} ${txtMsc})` +
+                            (serverQueue.loopQueue ? `\n*Queue em looping* :repeat:` : "") +
+                            (pages.length > 1 ? `\n\n- Página ${current + 1}/${pages.length}` : "") +
+                            `\n${pages[current]}` : "")
+                    )
+                    .setThumbnail(musicaAtual.thumbnail);
+
+                Msg.edit({ embeds: [updatedEmbedMessage] })
+            });
+        }
     }
 }
