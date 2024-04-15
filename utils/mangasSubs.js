@@ -119,12 +119,12 @@ async function verificarNovoCapitulo(manga, language) {
     const dataLimiteSemFuso = dataLimite.slice(0, -5);
 
     try {
-        const response = await axios.get(`${url}/manga/${manga}/feed`, { params: { "translatedLanguage[]": language, "createdAtSince": dataLimiteSemFuso }, timeout: 10000 });
+        const response = await axios.get(`${url}/manga/${manga}/feed`, { params: { "translatedLanguage[]": language, "createdAtSince": dataLimiteSemFuso }, timeout: 60 * 1_000 });
 
         while (response.status === 503) {
             console.log("O servidor está indisponível. Tentando novamente em 10 minutos...");
             await new Promise(resolve => setTimeout(resolve, 600000));
-            response = await axios.get(`${url}/manga/${manga}/feed`, { params: { "translatedLanguage[]": language, "createdAtSince": dataLimiteSemFuso }, timeout: 10000 });
+            response = await axios.get(`${url}/manga/${manga}/feed`, { params: { "translatedLanguage[]": language, "createdAtSince": dataLimiteSemFuso }, timeout: 60 * 1_000 });
         }
 
         if (response.status === 200) {
@@ -134,7 +134,7 @@ async function verificarNovoCapitulo(manga, language) {
         }
 
         if (mangaCapsData.data[0]) {
-            const responseManga = await axios.get(`${url}/manga/${manga}`, { timeout: 10000 })
+            const responseManga = await axios.get(`${url}/manga/${manga}`, { timeout: 60 * 1_000 })
             mangaData = responseManga.data
 
             const capitulo = mangaCapsData.data[0].attributes
@@ -149,7 +149,7 @@ async function verificarNovoCapitulo(manga, language) {
                 }
             }
 
-            const responseCover = await axios.get(`${url}/cover/${coverId}`)
+            const responseCover = await axios.get(`${url}/cover/${coverId}`, { timeout: 60 * 1_000 })
             const coverData = responseCover.data
 
             const cover = coverData.data.attributes.fileName
@@ -163,9 +163,9 @@ async function verificarNovoCapitulo(manga, language) {
             return embedMessage
         }
     } catch (error) {
-        console.error(`Ocorreu um erro ao verificar o novo capítulo de ${manga}:`, error);
+        console.error(`Ocorreu um erro ao verificar o novo capítulo de ${manga}:`);
 
-        const mensagemErro = `Ocorreu um erro ao verificar o novo capítulo de ${manga}:\n${error}\n`;
+        const mensagemErro = `Ocorreu um erro às ${new Date()} ao verificar o novo capítulo de ${manga}:\n${error}\n`;
         // Escrever o erro em um arquivo de texto
         fs.appendFile('error.log', mensagemErro, (err) => {
             if (err) {
